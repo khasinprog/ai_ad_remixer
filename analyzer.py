@@ -81,8 +81,7 @@ Keluarkan hasil analisis HANYA dalam format JSON valid di dalam blok ```json ...
       "detik_selesai": 5,
       "peran": "Hook / Problem / Solusi / Demo Produk / Social Proof / Call To Action",
       "aksi_visual": "Aksi apa yang terlihat di kamera",
-      "skrip_suara": "Kalimat yang diucapkan di detik ini",
-      "rekomendasi_edit_omni": "Instruksi prompt video gen / edit visual agar tampil lebih menarik, jernih, dan sinematik"
+      "skrip_suara": "Kalimat yang diucapkan di detik ini"
     }
   ],
   "formula_winning_iklan": [
@@ -92,10 +91,28 @@ Keluarkan hasil analisis HANYA dalam format JSON valid di dalam blok ```json ...
 }
 """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash-lite",
-        contents=[video_file, prompt]
-    )
+    # Try primary models with graceful fallback on high demand
+    models_to_try = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-1.5-flash"]
+    response = None
+    last_err = None
+
+    for m in models_to_try:
+        try:
+            if progress_callback:
+                progress_callback(f"Menganalisis skrip suara, visual, dan hook iklan dengan model {m}...")
+            response = client.models.generate_content(
+                model=m,
+                contents=[video_file, prompt]
+            )
+            if response and response.text:
+                break
+        except Exception as e:
+            last_err = e
+            time.sleep(2)
+            continue
+
+    if not response or not response.text:
+        raise RuntimeError(f"Semua model Gemini sedang sibuk atau error: {last_err}")
 
     raw_text = response.text.strip()
 

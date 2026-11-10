@@ -4,6 +4,7 @@ Splits source video into puzzle clips according to scene timestamps using FFmpeg
 """
 
 import os
+import re
 import subprocess
 from typing import Any, Dict, List
 
@@ -25,15 +26,18 @@ def slice_video_to_puzzles(video_path: str, scenes: List[Dict[str, Any]], output
     os.makedirs(output_dir, exist_ok=True)
     results = []
 
+    base_name = os.path.splitext(os.path.basename(video_path))[0]
+    clean_prefix = re.sub(r"[^\w-]", "_", base_name)[:18].strip("_") or "video"
+
     for item in scenes:
         scene_idx = item.get("scene", 1)
         start_sec = float(item.get("detik_mulai", 0))
         end_sec = float(item.get("detik_selesai", start_sec + 3))
         duration = max(0.5, end_sec - start_sec)
 
-        clip_name = f"puzzle_scene_{scene_idx:02d}_{int(start_sec)}s-{int(end_sec)}s.mp4"
+        clip_name = f"puzzle_{clean_prefix}_sc{scene_idx:02d}_{int(start_sec)}s-{int(end_sec)}s.mp4"
         clip_path = os.path.join(output_dir, clip_name)
-        thumb_name = f"puzzle_scene_{scene_idx:02d}.jpg"
+        thumb_name = f"puzzle_{clean_prefix}_sc{scene_idx:02d}.jpg"
         thumb_path = os.path.join(output_dir, thumb_name)
 
         # Cut video clip using ultrafast FFmpeg
@@ -60,6 +64,7 @@ def slice_video_to_puzzles(video_path: str, scenes: List[Dict[str, Any]], output
         subprocess.run(cmd_thumb, capture_output=True)
 
         results.append({
+            "source_video": base_name,
             "scene": scene_idx,
             "filename": clip_name,
             "clip_path": clip_path,

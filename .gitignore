@@ -4,7 +4,9 @@
 # Raw Video files (Hindari bloatware & batas 50MB GitHub)
 *.mp4
 puzzles/*.mp4
+puzzles/puzzle_*_sc*.jpg
 downloads/*.mp4
+downloads/omni/
 
 # Python Virtual Environments & Caches
 venv/

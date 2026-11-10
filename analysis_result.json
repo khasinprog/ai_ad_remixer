@@ -1,137 +1,54 @@
-```json
 {
   "hook": {
     "durasi_detik": 3,
-    "aksi_visual": "Pria memegang botol produk dan spons bulat hitam dengan pinggiran kuning, menunjuk ke arah penonton.",
-    "skrip_suara": "Kali ini aku bongkar rahasia motor bekas untuk menyelesaikan bodi-bodi kasar yang kayak gini bulu.",
-    "teknik_psikologi": "Memunculkan masalah umum (bodi motor kasar) dan menjanjikan solusi 'rahasia' untuk menarik perhatian."
+    "aksi_visual": "Pria mencoret plafon mobilnya dengan spidol permanen hitam, menanggapi komentar 'UNTUK PLAPON BISA BG' yang muncul sebagai overlay.",
+    "skrip_suara": "Bisa, Bang. Nih, kita coret-coret ya. Atap mobil kita seperti ini.",
+    "teknik_psikologi": "Menarik perhatian dengan aksi yang tidak biasa (mencoret plafon mobil), menciptakan rasa penasaran apakah noda permanen tersebut bisa dihilangkan, dan langsung merespons pertanyaan audiens (interaksi langsung)."
   },
-  "transkrip_lengkap": "Kali ini aku bongkar rahasia motor bekas untuk menyelesaikan bodi-bodi kasar yang kayak gini bulu. Kelihatan, Mas. Kelihatan, Mas. Yang bulu langsung aja langsung aja kita ke sini. Se. Lihat Mas, Yo. Iya. Langsung yang bulu jadi kayak gitu. Bulu bulu. Jadi kayak gini. Kalian enggak usah beli-beli lagi. Langsung aja aplikasikan dengan penghitam yang saya miliki ini. Loh. Jadi kayak gimana? Yang kayak tadi itu kayak gini. Ini dicuci enggak sama tangan tidak lengket. Ayo kita aplikasikan ke sini di sini. Ini Mas. Iya. Iya. Itu pun. Sudah di-cut. Sudah. Langsung kita kasih aja. Kita gini. U. Sudah. Jangan irit-irit ini murah ini. Iya. Iya. Kita kasih hitam, kita bikin hitam. Yo. Kita bikin hitam. Bagaimana jadinya? Ini rahasia motor bekas. Kita buka, Mas. Iya. Itu. Gimana, Mas? Ini yang sudah, ini yang belum, ini yang sudah, ini yang belum. Beda kelihatannya. Beda, Pak. Oke. Ini ndak lengket loh, loh. Hmm, hmm, ndak lengket yo. Iya, Pak. Sekarang kita cuci. Kuat dicuci kah, Bang? Coba kita aja langsung. Kita cuci yo. Oke. Langsung aja kita cuci. Dua, hmm. Tiga, hmm. Empat, hmm, ayo. Lima, ayo. Enam. Woi, 6 woi. 7 banyak wis Mas ya. Iya, Pak. Banyak yo. Langsung sekarang kita pakai air set. Set. Berapa kali? 7 kali yo? Iya. 7 kali. Ini meskipun dicuci beberapa kali tetap Mas, ndak luntur hitamnya Mas yo. Iya. Langsung kita ka. Siap. Hm. Kita ka. Langsung kita ka. Kelihatan enggak kelihatan Mas. Kelihatan Pak. Kelihatan? bahwa do hero penghitam ini meskipun dicuci tidak luntur. Coba ini. Set. Set. Itu yang belum dikasih gimana itu? Kelihatan, Mas. Loh, dicuci beberapa kali. Masih tegas. Dan jelas hitamnya ya Mas ya. Iya Mas. Oke, Mas. Oke. Ini dilamakan juga sama ndak lurus. ini ya putih yo. Ini di putih ini putih. Ini di putih kalau ini. Check out. Do Hero Black Penghitam untuk body-body kasar hitamnya. Seger banget. Ya. Iya. Kalian check out aja Rp30.000-an langsung dapat aplator yang kayak ini. aplatornya juga. Buruan, bumung promo 30.000-an. dapat penghitam yang bisa menghitamkan kayak gini dan dicuci. ndak luntur beberapa kali ya Mas ya. Iya, Pak. Depu ndak nempel air ndak nempel. Buruan.",
+  "transkrip_lengkap": "Bisa, Bang. Nih, kita coret-coret ya. Atap mobil kita seperti ini. Ini bisa dihilangin loh. Ini pakai tinta spidol yang permanen, teman-teman. Gunakan foam cleaner yang aku sematkan di sudut kiri bawah. Setelah itu Abang semprotin aja seperti ini. Nih. Ini bahannya bludru, teman-teman. Kalau disikat-sikat pakai brus itu bisa rusak bahannya ini, teman-teman. Disemprotin aja. Setelah itu Abang lap pakai kain lap microfiber. Nih, kita hasilnya seperti apa ya, nih. Nih. Nih. Langsung bersih, Bang. Nih. Apalagi kalau noda bintik-bintik di atap-atap. Apalagi orang yang suka ngerokok, teman-teman, itu bersihin aja pakai foam cleaner seperti ini. Harganya ini lagi murah banget, teman-teman. Dikasih harga promo dan stoknya ini juga masih ada. Buruan, langsung aja diambil.",
   "breakdown_scene": [
     {
       "scene": 1,
       "detik_mulai": 0,
-      "detik_selesai": 5,
+      "detik_selesai": 7,
       "peran": "Hook / Problem",
-      "aksi_visual": "Pria memegang botol produk dan spons bulat hitam dengan pinggiran kuning, menunjuk ke arah penonton.",
-      "skrip_suara": "Kali ini aku bongkar rahasia motor bekas untuk menyelesaikan bodi-bodi kasar yang kayak gini bulu.",
-      "rekomendasi_edit_omni": "Percepat sedikit aksi pria menunjuk, tambahkan teks overlay 'RAHASIA MOTOR BEKAS?' atau 'BODY KASAR NO MORE!'."
+      "aksi_visual": "Pria mencoret plafon mobil dengan spidol permanen, menunjukkan noda spidol yang tampak membandel. Overlay komentar 'UNTUK PLAPON BISA BG' terlihat di layar. Pria menegaskan bahwa itu spidol permanen.",
+      "skrip_suara": "Bisa, Bang. Nih, kita coret-coret ya. Atap mobil kita seperti ini. Ini bisa dihilangin loh. Ini pakai tinta spidol yang permanen, teman-teman.",
+      "rekomendasi_edit_omni": "Perbesar tampilan komentar agar lebih mudah dibaca dan durasinya lebih lama. Tambahkan efek suara goresan spidol yang tajam untuk menekankan aksi. Pertegas fokus pada noda spidol."
     },
     {
       "scene": 2,
-      "detik_mulai": 5,
-      "detik_selesai": 10,
-      "peran": "Problem / Demo Awal",
-      "aksi_visual": "Pria menunjukkan bagian motor yang kasar/berbulu (dashboard motor).",
-      "skrip_suara": "Kelihatan, Mas. Kelihatan, Mas. Yang bulu langsung aja langsung aja kita ke sini.",
-      "rekomendasi_edit_omni": "Fokuskan zoom pada bagian yang berbulu, gunakan efek visual 'penyalaan' pada kata 'BULU' atau 'KASAR'."
+      "detik_mulai": 7,
+      "detik_selesai": 17,
+      "peran": "Solusi / Demo Produk (Aplikasi)",
+      "aksi_visual": "Pria menunjukkan kaleng 'V-MAX Foam Cleaner', menunjuk ke sudut kiri bawah layar sebagai call to action (keranjang kuning). Kemudian menyemprotkan foam cleaner ke area yang terkena noda spidol. Foam putih menutup seluruh area noda. Pria menjelaskan bahwa bahan plafon adalah beludru dan tidak boleh disikat.",
+      "skrip_suara": "Gunakan foam cleaner yang aku sematkan di sudut kiri bawah. Setelah itu Abang semprotin aja seperti ini. Nih. Ini bahannya bludru, teman-teman. Kalau disikat-sikat pakai brus itu bisa rusak bahannya ini, teman-teman. Disemprotin aja.",
+      "rekomendasi_edit_omni": "Berikan highlight visual pada produk 'V-MAX Foam Cleaner' saat disebut. Tambahkan animasi panah yang jelas dan berkedip menunjuk ke ikon keranjang kuning. Tampilkan teks overlay singkat 'Aman untuk bahan bludru' atau 'Tidak perlu disikat' untuk menekankan keunggulan produk."
     },
     {
       "scene": 3,
-      "detik_mulai": 10,
-      "detik_selesai": 15,
-      "peran": "Solusi / Demo Produk",
-      "aksi_visual": "Pria mengaplikasikan produk ke bagian motor yang kasar dengan spons.",
-      "skrip_suara": "Lihat Mas, Yo. Iya. Langsung yang bulu jadi kayak gitu. Bulu bulu. Jadi kayak gini.",
-      "rekomendasi_edit_omni": "Gunakan transisi cepat saat produk diaplikasikan, tambahkan efek suara 'poof' atau 'wow' saat perubahan terlihat."
+      "detik_mulai": 17,
+      "detik_selesai": 31,
+      "peran": "Demo Produk (Hasil & Keunggulan)",
+      "aksi_visual": "Pria mengambil kain microfiber dan mulai mengelap foam yang sudah disemprotkan di plafon. Noda spidol secara ajaib hilang dengan cepat dan plafon kembali bersih seperti semula. Pria menekankan efektivitas produk untuk berbagai noda, termasuk noda rokok.",
+      "skrip_suara": "Setelah itu Abang lap pakai kain lap microfiber. Nih, kita hasilnya seperti apa ya, nih. Langsung bersih, Bang. Nih. Apalagi kalau noda bintik-bintik di atap-atap. Apalagi orang yang suka ngerokok, teman-teman, itu bersihin aja pakai foam cleaner seperti ini.",
+      "rekomendasi_edit_omni": "Gunakan efek transisi visual yang dramatis (misalnya, wipe effect atau morph) untuk menunjukkan perbedaan 'before-after' yang instan saat noda menghilang. Perjelas fokus pada area yang dibersihkan. Pastikan pencahayaan optimal untuk menunjukkan warna asli plafon setelah bersih."
     },
     {
       "scene": 4,
-      "detik_mulai": 15,
-      "detik_selesai": 25,
-      "peran": "Demo Produk / Keunggulan",
-      "aksi_visual": "Pria menggosok bagian motor yang sudah diaplikasikan produk, menunjukkan bahwa tidak lengket.",
-      "skrip_suara": "Kalian enggak usah beli-beli lagi. Langsung aja aplikasikan dengan penghitam yang saya miliki ini. Loh. Jadi kayak gimana? Yang kayak tadi itu kayak gini. Ini dicuci enggak sama tangan tidak lengket.",
-      "rekomendasi_edit_omni": "Tambahkan teks overlay 'TIDAK LENGKET!' atau 'Hasil Instan!', gunakan slow-motion saat menggosok untuk menekankan kelengketan."
-    },
-    {
-      "scene": 5,
-      "detik_mulai": 25,
-      "detik_selesai": 32,
-      "peran": "Demo Produk / Keunggulan",
-      "aksi_visual": "Pria menunjukkan area yang belum dan sudah diaplikasikan produk, membandingkan.",
-      "skrip_suara": "Ayo kita aplikasikan ke sini di sini. Ini Mas. Iya. Iya. Itu pun. Sudah di-cut. Sudah. Langsung kita kasih aja. Kita gini. U. Sudah. Jangan irit-irit ini murah ini. Iya. Iya.",
-      "rekomendasi_edit_omni": "Gunakan split screen atau efek before/after yang jelas, berikan suara 'ding!' saat perbedaan terlihat."
-    },
-    {
-      "scene": 6,
-      "detik_mulai": 32,
-      "detik_selesai": 40,
-      "peran": "Demo Produk / Hasil",
-      "aksi_visual": "Pria mengaplikasikan produk ke bagian lain motor (spakbor/senpat).",
-      "skrip_suara": "Kita kasih hitam, kita bikin hitam. Yo. Kita bikin hitam. Bagaimana jadinya? Ini rahasia motor bekas.",
-      "rekomendasi_edit_omni": "Gunakan efek kilat atau kilau pada bagian yang dihitamkan, tambahkan teks 'HITAM KINCLONG!'"
-    },
-    {
-      "scene": 7,
-      "detik_mulai": 40,
-      "detik_selesai": 57,
-      "peran": "Demo Produk / Keunggulan (Ketahanan)",
-      "aksi_visual": "Pria mencoba menggosok dan mencuci bagian yang sudah diaplikasikan produk, menunjukkan tidak luntur.",
-      "skrip_suara": "Kita buka, Mas. Iya. Itu. Gimana, Mas? Ini yang sudah, ini yang belum, ini yang sudah, ini yang belum. Beda kelihatannya. Beda, Pak. Oke. Ini ndak lengket loh, loh. Hmm, hmm, ndak lengket yo. Iya, Pak.",
-      "rekomendasi_edit_omni": "Gunakan teks 'TIDAK LUNTUR!' dan 'Tahan Air!', tambahkan efek suara percikan air yang tegas."
-    },
-    {
-      "scene": 8,
-      "detik_mulai": 57,
-      "detik_selesai": 104,
-      "peran": "Demo Produk / Keunggulan (Ketahanan)",
-      "aksi_visual": "Pria mencuci bagian motor berulang kali dengan sabun dan air, kemudian mengeringkannya, menunjukkan warna hitam tetap pekat.",
-      "skrip_suara": "Sekarang kita cuci. Kuat dicuci kah, Bang? Coba kita aja langsung. Kita cuci yo. Oke. Langsung aja kita cuci. Dua, hmm. Tiga, hmm. Empat, hmm, ayo. Lima, ayo. Enam. Woi, 6 woi. 7 banyak wis Mas ya. Iya, Pak. Banyak yo. Langsung sekarang kita pakai air set. Set. Berapa kali? 7 kali yo? Iya. 7 kali. Ini meskipun dicuci beberapa kali tetap Mas, ndak luntur hitamnya Mas yo. Iya.",
-      "rekomendasi_edit_omni": "Gunakan counter pada layar untuk menunjukkan berapa kali dicuci, tambahkan teks 'AWET & KUAT!' atau 'HITAM PERMANEN?'"
-    },
-    {
-      "scene": 9,
-      "detik_mulai": 104,
-      "detik_selesai": 128,
-      "peran": "Demo Produk / Hasil Akhir",
-      "aksi_visual": "Pria mengelap bagian motor yang sudah dicuci dan dikeringkan, menunjukkan hasilnya yang hitam pekat dan mengkilap.",
-      "skrip_suara": "Langsung kita ka. Siap. Hm. Kita ka. Langsung kita ka. Kelihatan enggak kelihatan Mas. Kelihatan Pak. Kelihatan? bahwa do hero penghitam ini meskipun dicuci tidak luntur. Coba ini. Set. Set. Itu yang belum dikasih gimana itu? Kelihatan, Mas. Loh, dicuci beberapa kali. Masih tegas. Dan jelas hitamnya ya Mas ya. Iya Mas.",
-      "rekomendasi_edit_omni": "Perbesar visual bagian yang sudah diolah, tambahkan efek kilauan. Tampilkan teks 'SEPERTI BARU LAGI!'."
-    },
-    {
-      "scene": 10,
-      "detik_mulai": 128,
-      "detik_selesai": 156,
-      "peran": "Demo Produk / Keunggulan (Heat gun)",
-      "aksi_visual": "Pria menggunakan heat gun (alat pemanas) pada bagian motor yang sudah diolah.",
-      "skrip_suara": "Oke, Mas. Oke. Ini dilamakan juga sama ndak lurus. ini ya putih yo. Ini di putih ini putih. Ini di putih kalau ini. Check out.",
-      "rekomendasi_edit_omni": "Tampilkan teks 'ANTI LUNTUR' dan 'BISA DIPANASKAN?' secara singkat. Efek asap dari heat gun."
-    },
-    {
-      "scene": 11,
-      "detik_mulai": 156,
-      "detik_selesai": 170,
-      "peran": "Produk / Keunggulan",
-      "aksi_visual": "Pria memegang botol produk dan menyodor-nyodorkannya ke wajah, mencium aromanya.",
-      "skrip_suara": "Do Hero Black Penghitam untuk body-body kasar hitamnya. Seger banget. Ya. Iya.",
-      "rekomendasi_edit_omni": "Perjelas label produk, tambahkan efek visual aroma yang keluar dari botol."
-    },
-    {
-      "scene": 12,
-      "detik_mulai": 170,
-      "detik_selesai": 184,
-      "peran": "Call To Action / Penawaran",
-      "aksi_visual": "Pria menunjukkan botol produk dan spons, memberikan informasi harga.",
-      "skrip_suara": "Kalian check out aja Rp30.000-an langsung dapat aplator yang kayak ini. aplatornya juga.",
-      "rekomendasi_edit_omni": "Tampilkan teks HARGA: Rp30.000, tambahkan ikon keranjang belanja, dan teks 'GRATIS APLIKATOR'."
-    },
-    {
-      "scene": 13,
-      "detik_mulai": 184,
-      "detik_selesai": 203,
-      "peran": "Call To Action / Penawaran",
-      "aksi_visual": "Pria kembali menunjukkan hasil pada motor, menekankan keunggulan produk.",
-      "skrip_suara": "Buruan, bumung promo 30.000-an. dapat penghitam yang bisa menghitamkan kayak gini dan dicuci. ndak luntur beberapa kali ya Mas ya. Iya, Pak. Depu ndak nempel air ndak nempel. Buruan.",
-      "rekomendasi_edit_omni": "Ulangi informasi harga dan keunggulan. Tambahkan animasi panah menunjuk ke tombol 'Shop Now' atau 'Checkout'."
+      "detik_mulai": 31,
+      "detik_selesai": 38,
+      "peran": "Call To Action / Urgency",
+      "aksi_visual": "Pria memegang kaleng produk dan berbicara langsung ke kamera dengan antusias, menekankan harga promo dan stok yang masih tersedia.",
+      "skrip_suara": "Harganya ini lagi murah banget, teman-teman. Dikasih harga promo dan stoknya ini juga masih ada. Buruan, langsung aja diambil.",
+      "rekomendasi_edit_omni": "Tampilkan overlay teks 'HARGA PROMO!' dan 'STOK TERBATAS!' dengan desain yang menarik dan eye-catching. Gunakan efek zoom in perlahan pada wajah creator atau produk untuk menambah fokus. Tambahkan musik latar yang lebih upbeat di bagian ini untuk meningkatkan urgensi."
     }
   ],
   "formula_winning_iklan": [
-    "Problem-Solution-Benefit (PSB) Framework: Mengidentifikasi masalah umum pada motor bekas (bodi kasar/berbulu), menawarkan produk sebagai solusi instan, dan menyoroti manfaat jangka panjang (tidak luntur, tahan cuci, tidak lengket).",
-    "Visualisasi Hasil yang Jelas dan Cepat: Iklan ini sangat efektif dalam menampilkan 'before' dan 'after' yang dramatis hanya dalam hitungan detik, membuktikan klaim produk secara visual.",
-    "Demonstrasi Ketahanan Produk: Pengujian ketahanan terhadap air dan gosokan berulang kali memberikan kepercayaan lebih kepada audiens bahwa produk ini berkualitas dan tahan lama.",
-    "Call to Action (CTA) yang Kuat dan Jelas: Adanya penawaran harga yang menarik, bonus gratis aplikasi, dan dorongan untuk segera membeli ('Buruan') sangat efektif dalam mendorong konversi.",
-    "Kredibilitas Melalui Bukti Nyata: Penggunaan bahasa sehari-hari dan demo langsung membuat audiens merasa lebih terhubung dan percaya pada klaim produk, seolah-olah mendapatkan saran dari teman."
+    "Problem-Solution-Demonstration: Mengidentifikasi masalah umum (noda plafon mobil), menunjukkan solusi (produk), dan mendemonstrasikan efektivitasnya secara visual dan instan.",
+    "User-Generated Content (UGC) / Testimonial Style: Diawali dengan menanggapi komentar pengguna, menciptakan kesan organik dan relevan seolah-olah menjawab pertanyaan audiens secara langsung.",
+    "Pain Point & Benefit-Driven: Mengatasi kekhawatiran audiens (noda permanen, merusak bahan) dan menyoroti manfaat produk (aman untuk bludru, membersihkan noda rokok, tidak perlu disikat keras).",
+    "Strong Call To Action with Urgency: Secara eksplisit mengajak untuk membeli dengan penawaran harga promo dan menekankan ketersediaan stok yang terbatas untuk mendorong keputusan pembelian instan.",
+    "Visual Proof: Menunjukkan hasil 'before-after' yang sangat jelas dan cepat, membangun kepercayaan pada efikasi produk."
   ]
 }
-```

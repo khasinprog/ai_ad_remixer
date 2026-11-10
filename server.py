@@ -28,6 +28,10 @@ from downloader import fetch_tiktok_data, download_stream, sanitize_filename
 from analyzer import analyze_video
 from slicer import slice_video_to_puzzles
 from assembler import assemble_ad
+from matcher import match_scenes_with_ai
+
+OMNI_DIR = os.path.join(DOWNLOADS_DIR, "omni")
+os.makedirs(OMNI_DIR, exist_ok=True)
 
 PORT = 5055
 
@@ -105,8 +109,12 @@ class AdStudioHandler(BaseHTTPRequestHandler):
                 filename = p.get("filename")
                 if filename:
                     p["clip_path"] = os.path.join(PUZZLES_DIR, filename)
-                    thumb_name = f"puzzle_scene_{p.get('scene', 1):02d}.jpg"
-                    p["thumb_path"] = os.path.join(PUZZLES_DIR, thumb_name)
+                    thumb_path = p.get("thumb_path")
+                    if not thumb_path or not os.path.exists(thumb_path):
+                        base_stem = os.path.splitext(filename)[0]
+                        candidate = os.path.join(PUZZLES_DIR, f"{base_stem}.jpg")
+                        if os.path.exists(candidate):
+                            p["thumb_path"] = candidate
 
                 p["clip_url"] = f"/api/media?path={urllib.parse.quote(p.get('clip_path', ''))}"
                 if p.get("thumb_path") and os.path.exists(p.get("thumb_path")):
@@ -176,6 +184,23 @@ class AdStudioHandler(BaseHTTPRequestHandler):
                     self.wfile.write(chunk)
             return
 
+        # 5. List local videos in downloads folder
+        elif path == "/api/local-videos":
+            files = []
+            if os.path.exists(DOWNLOADS_DIR):
+                for f in os.listdir(DOWNLOADS_DIR):
+                    if f.lower().endswith(".mp4") and not f.startswith("iklan_baru_"):
+                        full_p = os.path.join(DOWNLOADS_DIR, f)
+                        files.append({
+                            "name": f,
+                            "path": full_p,
+                            "size_mb": round(os.path.getsize(full_p) / (1024 * 1024), 2),
+                            "modified": os.path.getmtime(full_p)
+                        })
+            files.sort(key=lambda x: x["modified"], reverse=True)
+            self.send_json(200, {"success": True, "videos": files})
+            return
+
         else:
             self.send_error(404, "Endpoint not found")
 
@@ -183,6 +208,67 @@ class AdStudioHandler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         length = int(self.headers.get("Content-Length", 0))
+
+        # 0. Upload local video file (Binary stream)
+        if path == "/api/upload":
+            raw_filename = self.headers.get("X-Filename", "uploaded_video.mp4")
+            filename = urllib.parse.unquote(raw_filename)
+            filename = re.sub(r"[^\w\.-]", "_", filename)
+            if not filename.lower().endswith(".mp4"):
+                filename += ".mp4"
+            target_path = os.path.join(DOWNLOADS_DIR, filename)
+
+            try:
+                with open(target_path, "wb") as f:
+                    remaining = length
+                    chunk_size = 64 * 1024
+                    while remaining > 0:
+                        read_bytes = min(chunk_size, remaining)
+                        chunk = self.rfile.read(read_bytes)
+                        if not chunk:
+                            break
+                        f.write(chunk)
+                        remaining -= len(chunk)
+
+                self.send_json(200, {"success": True, "filename": filename, "video_path": target_path})
+            except Exception as e:
+                self.send_json(500, {"success": False, "error": str(e)})
+            return
+
+        # 0.1 Upload Omni Video Clip (Binary stream)
+        if path == "/api/upload-omni":
+            raw_filename = self.headers.get("X-Filename", "omni_clip.mp4")
+            scene_idx = self.headers.get("X-Scene-Idx", "01")
+            filename = urllib.parse.unquote(raw_filename)
+            filename = re.sub(r"[^\w\.-]", "_", filename)
+            if not filename.lower().endswith(".mp4"):
+                filename += ".mp4"
+            target_filename = f"omni_sc{scene_idx}_{int(time.time())}_{filename}"
+            target_path = os.path.join(OMNI_DIR, target_filename)
+
+            try:
+                with open(target_path, "wb") as f:
+                    remaining = length
+                    chunk_size = 64 * 1024
+                    while remaining > 0:
+                        read_bytes = min(chunk_size, remaining)
+                        chunk = self.rfile.read(read_bytes)
+                        if not chunk:
+                            break
+                        f.write(chunk)
+                        remaining -= len(chunk)
+
+                media_url = f"/api/media?path={urllib.parse.quote(target_path)}"
+                self.send_json(200, {
+                    "success": True,
+                    "filename": target_filename,
+                    "clip_path": target_path,
+                    "clip_url": media_url
+                })
+            except Exception as e:
+                self.send_json(500, {"success": False, "error": str(e)})
+            return
+
         body = self.rfile.read(length).decode("utf-8") if length > 0 else "{}"
 
         try:
@@ -193,26 +279,26 @@ class AdStudioHandler(BaseHTTPRequestHandler):
         # 1. Reverse-engineer video with Gemini
         if path == "/api/analyze":
             url = payload.get("url", "").strip()
-            if not url:
-                self.send_json(400, {"success": False, "error": "URL TikTok tidak boleh kosong"})
+            video_path = payload.get("video_path", "").strip()
+
+            if not url and not video_path:
+                self.send_json(400, {"success": False, "error": "URL TikTok atau file video tidak boleh kosong"})
                 return
 
             try:
-                # Check if we already have this video downloaded locally
-                # Fetch metadata from TikTok
-                tt_data = fetch_tiktok_data(url)
-                video_url = tt_data["video"]["no_watermark_hd"] or tt_data["video"]["no_watermark"]
-                clean_title = sanitize_filename(tt_data.get("title", "tiktok_video"))
-                target_video_path = os.path.join(DOWNLOADS_DIR, f"{clean_title}_{tt_data['id']}_no_watermark.mp4")
+                if video_path and os.path.exists(video_path):
+                    target_video_path = video_path
+                else:
+                    tt_data = fetch_tiktok_data(url)
+                    video_url = tt_data["video"]["no_watermark_hd"] or tt_data["video"]["no_watermark"]
+                    clean_title = sanitize_filename(tt_data.get("title", "tiktok_video"))
+                    target_video_path = os.path.join(DOWNLOADS_DIR, f"{clean_title}_{tt_data['id']}_no_watermark.mp4")
 
-                # Download if not present
-                if not os.path.exists(target_video_path):
-                    download_stream(video_url, target_video_path)
+                    if not os.path.exists(target_video_path):
+                        download_stream(video_url, target_video_path)
 
-                # Analyze with Gemini
                 analysis = analyze_video(target_video_path)
 
-                # Cache analysis
                 with open(ANALYSIS_FILE, "w") as f:
                     json.dump(analysis, f, indent=2)
 
@@ -237,10 +323,34 @@ class AdStudioHandler(BaseHTTPRequestHandler):
 
             try:
                 results = slice_video_to_puzzles(video_path, scenes, PUZZLES_DIR)
-                with open(PUZZLES_META_FILE, "w") as f:
-                    json.dump(results, f, indent=2)
 
-                self.send_json(200, {"success": True, "count": len(results)})
+                # Merge with existing puzzles so the library accumulates clips from multiple TikTok videos
+                existing_puzzles = []
+                if os.path.exists(PUZZLES_META_FILE):
+                    try:
+                        with open(PUZZLES_META_FILE, "r") as f:
+                            existing_puzzles = json.load(f)
+                    except Exception:
+                        existing_puzzles = []
+
+                existing_files = {p.get("filename") for p in existing_puzzles}
+                for r in results:
+                    if r.get("filename") not in existing_files:
+                        existing_puzzles.append(r)
+                    else:
+                        for idx, ep in enumerate(existing_puzzles):
+                            if ep.get("filename") == r.get("filename"):
+                                existing_puzzles[idx] = r
+                                break
+
+                with open(PUZZLES_META_FILE, "w") as f:
+                    json.dump(existing_puzzles, f, indent=2)
+
+                self.send_json(200, {
+                    "success": True,
+                    "count": len(results),
+                    "total_puzzles": len(existing_puzzles)
+                })
             except Exception as e:
                 self.send_json(500, {"success": False, "error": str(e)})
             return
@@ -255,6 +365,137 @@ class AdStudioHandler(BaseHTTPRequestHandler):
                 res = assemble_ad(scenes=scenes, voice=voice, output_path=output_ad_path)
                 res["video_url"] = f"/api/media?path={urllib.parse.quote(output_ad_path)}"
                 self.send_json(200, res)
+            except Exception as e:
+                self.send_json(500, {"success": False, "error": str(e)})
+            return
+
+        # 4. Batch Download TikTok Videos
+        elif path == "/api/batch-download-tiktok":
+            urls = payload.get("urls", [])
+            if not urls:
+                self.send_json(400, {"success": False, "error": "Daftar URL TikTok tidak boleh kosong"})
+                return
+
+            results_summary = []
+            new_puzzles_total = 0
+
+            # Load existing puzzles
+            existing_puzzles = []
+            if os.path.exists(PUZZLES_META_FILE):
+                try:
+                    with open(PUZZLES_META_FILE, "r") as f:
+                        existing_puzzles = json.load(f)
+                except Exception:
+                    existing_puzzles = []
+
+            existing_files = {p.get("filename") for p in existing_puzzles}
+
+            for u in urls:
+                u = u.strip()
+                if not u:
+                    continue
+                try:
+                    tt_data = fetch_tiktok_data(u)
+                    video_url = tt_data["video"]["no_watermark_hd"] or tt_data["video"]["no_watermark"]
+                    clean_title = sanitize_filename(tt_data.get("title", "tiktok_video"))
+                    target_video_path = os.path.join(DOWNLOADS_DIR, f"{clean_title}_{tt_data['id']}_no_watermark.mp4")
+
+                    if not os.path.exists(target_video_path):
+                        download_stream(video_url, target_video_path)
+
+                    # Extract scenes with Gemini
+                    analysis = analyze_video(target_video_path)
+                    scenes = analysis.get("breakdown_scene", [])
+
+                    # Slice video into puzzles
+                    cut_puzzles = slice_video_to_puzzles(target_video_path, scenes, PUZZLES_DIR)
+                    for r in cut_puzzles:
+                        if r.get("filename") not in existing_files:
+                            existing_puzzles.append(r)
+                            existing_files.add(r.get("filename"))
+                            new_puzzles_total += 1
+
+                    results_summary.append({
+                        "url": u,
+                        "title": tt_data.get("title", ""),
+                        "success": True,
+                        "scenes_cut": len(cut_puzzles)
+                    })
+                except Exception as err:
+                    results_summary.append({
+                        "url": u,
+                        "success": False,
+                        "error": str(err)
+                    })
+
+            # Save updated puzzles
+            with open(PUZZLES_META_FILE, "w") as f:
+                json.dump(existing_puzzles, f, indent=2)
+
+            self.send_json(200, {
+                "success": True,
+                "summary": results_summary,
+                "new_puzzles_added": new_puzzles_total,
+                "total_puzzles": len(existing_puzzles)
+            })
+            return
+
+        # 5. AI Auto-Match Improvement Scenes with Puzzle Library
+        elif path == "/api/match-scenes":
+            user_scenes = payload.get("scenes", [])
+            if not user_scenes:
+                self.send_json(400, {"success": False, "error": "Daftar scene pengguna tidak boleh kosong"})
+                return
+
+            # Load available puzzles
+            puzzles = []
+            if os.path.exists(PUZZLES_META_FILE):
+                try:
+                    with open(PUZZLES_META_FILE, "r") as f:
+                        puzzles = json.load(f)
+                except Exception:
+                    puzzles = []
+
+            if not puzzles:
+                self.send_json(400, {
+                    "success": False,
+                    "error": "Perpustakaan puzzle masih kosong. Masukkan dan potong video TikTok bahan terlebih dahulu."
+                })
+                return
+
+            try:
+                matched_results = match_scenes_with_ai(user_scenes, puzzles)
+                puzzle_by_fn = {p.get("filename"): p for p in puzzles}
+
+                # Enrich matched results with actual file paths and media URLs
+                plan = []
+                for m in matched_results:
+                    fn = m.get("selected_puzzle_filename")
+                    p_info = puzzle_by_fn.get(fn, {})
+                    clip_path = p_info.get("clip_path") or os.path.join(PUZZLES_DIR, fn)
+                    thumb_path = p_info.get("thumb_path")
+                    if not thumb_path or not os.path.exists(thumb_path):
+                        base_stem = os.path.splitext(fn)[0]
+                        candidate = os.path.join(PUZZLES_DIR, f"{base_stem}.jpg")
+                        if os.path.exists(candidate):
+                            thumb_path = candidate
+
+                    plan.append({
+                        "scene_name": m.get("scene_name"),
+                        "voice_script": m.get("voice_script"),
+                        "visual_intent": m.get("visual_intent"),
+                        "selected_puzzle_filename": fn,
+                        "clip_path": clip_path,
+                        "clip_url": f"/api/media?path={urllib.parse.quote(clip_path)}",
+                        "thumb_url": f"/api/media?path={urllib.parse.quote(thumb_path)}" if thumb_path and os.path.exists(thumb_path) else "",
+                        "match_reason": m.get("match_reason"),
+                        "omni_camera_prompt": m.get("omni_camera_prompt"),
+                        "is_omni": False,
+                        "omni_clip_path": "",
+                        "omni_clip_url": ""
+                    })
+
+                self.send_json(200, {"success": True, "plan": plan})
             except Exception as e:
                 self.send_json(500, {"success": False, "error": str(e)})
             return

@@ -79,31 +79,120 @@
       <div class="glass p-6 rounded-2xl">
         <div class="max-w-3xl mx-auto text-center">
           <h2 class="text-2xl md:text-3xl font-extrabold mb-2">
-            Ekstrak Formula Iklan Kompetitor dengan <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-400">Gemini AI</span>
+            Ekstrak Formula Iklan dengan <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-400">Gemini AI</span>
           </h2>
           <p class="text-slate-400 text-xs md:text-sm mb-6">
-            Masukkan link video TikTok pemenang. Gemini akan mengekstrak Hook, transkrip suara penuh, serta breakdown visual detik-by-detik lengkap dengan rekomendasi prompt edit visual Omni.
+            Pilih cara memasukkan video referensi Anda: dari link TikTok, upload langsung file MP4 dari komputer, atau pilih video yang sudah ada di folder <code>downloads/</code>.
           </p>
 
-          <form onsubmit="handleAnalyze(event)" class="relative flex items-center glass rounded-2xl p-2 shadow-xl focus-within:ring-2 focus-within:ring-rose-500/50 transition">
+          <!-- Input Source Toggle -->
+          <div class="inline-flex flex-wrap items-center justify-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs mb-6 shadow gap-1">
+            <button type="button" onclick="setInputSourceMode('tiktok')" id="btnSourceTiktok" class="px-3.5 py-1.5 rounded-lg font-semibold transition bg-rose-600 text-white shadow">
+              <i class="fa-brands fa-tiktok mr-1.5"></i>Link TikTok Tunggal
+            </button>
+            <button type="button" onclick="setInputSourceMode('batch')" id="btnSourceBatch" class="px-3.5 py-1.5 rounded-lg font-semibold transition text-slate-400 hover:text-slate-200">
+              <i class="fa-solid fa-layer-group mr-1.5"></i>Multi-Link TikTok (Kumpulan Bahan)
+            </button>
+            <button type="button" onclick="setInputSourceMode('upload')" id="btnSourceUpload" class="px-3.5 py-1.5 rounded-lg font-semibold transition text-slate-400 hover:text-slate-200">
+              <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i>Upload File MP4
+            </button>
+            <button type="button" onclick="setInputSourceMode('local')" id="btnSourceLocal" class="px-3.5 py-1.5 rounded-lg font-semibold transition text-slate-400 hover:text-slate-200">
+              <i class="fa-solid fa-folder-open mr-1.5"></i>Pilih Video Tersedia (<span id="localVideoCount">0</span>)
+            </button>
+          </div>
+
+          <!-- Mode 1: TikTok Single URL Form -->
+          <form id="formTiktok" onsubmit="handleAnalyze(event)" class="relative flex items-center glass rounded-2xl p-2 shadow-xl focus-within:ring-2 focus-within:ring-rose-500/50 transition">
             <i class="fa-brands fa-tiktok text-slate-400 ml-3 mr-2"></i>
             <input 
               type="text" 
               id="tiktokUrlInput"
-              placeholder="Tempel link TikTok (misal: https://vt.tiktok.com/ZSpD4MSJL/)" 
+              placeholder="Tempel link TikTok referensi (misal: https://vt.tiktok.com/ZSpD4MSJL/)" 
               class="w-full bg-transparent border-0 text-white placeholder-slate-500 focus:outline-none px-2 py-2 text-sm"
               value="https://vt.tiktok.com/ZSpD4MSJL/"
-              required
             >
             <button 
               type="submit" 
               id="btnAnalyze"
               class="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-xs md:text-sm shadow-lg shadow-rose-950 flex-shrink-0"
             >
-              <span id="btnAnalyzeText">Bedah dengan Gemini</span>
+              <span id="btnAnalyzeText">Bedah Referensi</span>
               <i id="btnAnalyzeIcon" class="fa-solid fa-wand-magic-sparkles"></i>
             </button>
           </form>
+
+          <!-- Mode 1B: Multi-Link Batch TikTok Form -->
+          <div id="formBatch" class="hidden">
+            <div class="glass p-5 rounded-2xl text-left border border-slate-800 space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                  <i class="fa-solid fa-layer-group text-rose-400"></i> Tempel Kumpulan Link Video TikTok Bahan (1 Link per Baris)
+                </label>
+                <span class="text-[11px] text-slate-400">Semua video akan di-download tanpa watermark & dipotong jadi puzzle</span>
+              </div>
+              <textarea 
+                id="batchTiktokUrls" 
+                rows="4" 
+                placeholder="https://vt.tiktok.com/xxxx1/&#10;https://vt.tiktok.com/xxxx2/&#10;https://vt.tiktok.com/xxxx3/"
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-rose-500 font-mono"
+              ></textarea>
+              <div class="flex justify-between items-center pt-1">
+                <span class="text-[11px] text-slate-400">Tip: Kepingan puzzle akan langsung masuk ke Tab 2 (Puzzle Library)</span>
+                <button 
+                  type="button" 
+                  id="btnBatchDownload"
+                  onclick="handleBatchDownloadTikTok()"
+                  class="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold px-5 py-2.5 rounded-xl transition flex items-center gap-2 text-xs shadow-lg shadow-rose-950"
+                >
+                  <i id="btnBatchIcon" class="fa-solid fa-cloud-arrow-down"></i>
+                  <span id="btnBatchText">Download & Potong Semua Jadi Puzzle</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode 2: Direct Video File Upload -->
+          <div id="formUpload" class="hidden">
+            <div 
+              id="dropZone" 
+              class="border-2 border-dashed border-slate-700 hover:border-rose-500/80 rounded-2xl p-8 glass text-center cursor-pointer transition flex flex-col items-center justify-center space-y-3"
+              onclick="document.getElementById('fileUploadInput').click()"
+              ondragover="event.preventDefault(); this.classList.add('border-rose-500')"
+              ondragleave="this.classList.remove('border-rose-500')"
+              ondrop="handleFileDrop(event)"
+            >
+              <div class="w-14 h-14 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 text-2xl mb-1 shadow-inner">
+                <i class="fa-solid fa-film"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-slate-200">Klik untuk memilih video atau seret & lepas file video MP4 ke sini</p>
+                <p class="text-xs text-slate-400 mt-1">Mendukung format video .mp4 (video referensi iklan kompetitor / produk Anda)</p>
+              </div>
+              <input type="file" id="fileUploadInput" accept="video/mp4,video/*" class="hidden" onchange="handleFileInputChange(event)">
+            </div>
+          </div>
+
+          <!-- Mode 3: Local Files in downloads/ -->
+          <div id="formLocal" class="hidden">
+            <div class="glass rounded-2xl p-4 flex flex-col md:flex-row items-center gap-3">
+              <i class="fa-solid fa-folder-closed text-rose-400 text-xl ml-2 hidden md:block"></i>
+              <select id="localVideoSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs md:text-sm text-slate-200 focus:outline-none focus:border-rose-500">
+                <option value="">-- Memuat daftar video di folder downloads... --</option>
+              </select>
+              <button 
+                type="button" 
+                onclick="handleAnalyzeSelectedLocal()"
+                class="w-full md:w-auto bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-semibold px-5 py-2.5 rounded-xl transition flex items-center justify-center space-x-2 text-xs md:text-sm shadow flex-shrink-0"
+              >
+                <span>Bedah Video Ini</span>
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-2 text-left">
+              <i class="fa-solid fa-circle-info mr-1 text-slate-500"></i>
+              Tip: Anda juga dapat menaruh file video langsung ke folder: <code>d:\app khasin\ai_ad_remixer\downloads\</code>
+            </p>
+          </div>
 
           <div id="analyzeStatus" class="hidden mt-4 text-xs text-rose-300 flex items-center justify-center space-x-2">
             <i class="fa-solid fa-spinner fa-spin"></i>
@@ -177,9 +266,9 @@
           <div class="flex items-center justify-between mb-4">
             <div>
               <h4 class="text-sm font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-film text-cyan-400"></i> Breakdown Visual & Skrip per Detik
+                <i class="fa-solid fa-film text-cyan-400"></i> Detail Alur Visual & Skrip per Detik
               </h4>
-              <p class="text-xs text-slate-400">Setiap baris adalah satu potongan puzzle potensial beserta instruksi modifikasi visual Omni.</p>
+              <p class="text-xs text-slate-400">Detail aksi visual, durasi waktu, peran psikologi iklan, dan transkrip skrip suara asli dari video referensi.</p>
             </div>
             <span class="text-xs bg-slate-800 text-slate-300 px-3 py-1 rounded-lg border border-slate-700" id="sceneCountBadge">0 Scene</span>
           </div>
@@ -192,7 +281,6 @@
                   <th class="py-2.5 px-3">Peran Iklan</th>
                   <th class="py-2.5 px-3">Aksi Visual Asli</th>
                   <th class="py-2.5 px-3">Skrip Suara Asli</th>
-                  <th class="py-2.5 px-3 text-rose-300">Prompt Edit Visual Omni</th>
                 </tr>
               </thead>
               <tbody id="scenesTableBody" class="divide-y divide-slate-800/60"></tbody>
@@ -246,29 +334,35 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- TAB 3: STUDIO PERAKIT IKLAN (REMIXER & TEMPO SYNC) -->
+    <!-- TAB 3: STUDIO PERAKIT IKLAN (PERSONA, ANGLE & OFFER + AUTO-MATCH + OMNI) -->
     <!-- ========================================== -->
     <section id="tab-remix" class="hidden space-y-6">
       
+      <!-- Step 1: Input Improvement Concept & Script -->
       <div class="glass p-6 rounded-2xl">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
           <div>
-            <h2 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-              <i class="fa-solid fa-sliders text-rose-500"></i> Studio Perakit Iklan Baru
-            </h2>
-            <p class="text-xs text-slate-400">Susun potongan puzzle, ketik skrip voiceover baru, lalu sistem akan menyesuaikan tempo video secara presisi dengan kecepatan narasi suara AI.</p>
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-rose-600 text-white font-bold flex items-center justify-center text-xs">1</span>
+              <h2 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+                Rancang Scene Improvement (Persona, Angle & Offer)
+              </h2>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">
+              Tuliskan nama scene, visual yang diinginkan, dan skrip suara baru Anda. Gemini akan mencocokkan kepingan puzzle TikTok yang paling sesuai dan membuatkan prompt edit kamera Omni.
+            </p>
           </div>
           <div class="flex items-center gap-2">
             <button 
               type="button" 
-              onclick="loadExampleScript()" 
+              onclick="loadImprovementTemplate()" 
               class="text-xs bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/40 px-3 py-2 rounded-xl transition flex items-center gap-1.5"
             >
-              <i class="fa-solid fa-wand-magic"></i> Isi Contoh Skrip Juara
+              <i class="fa-solid fa-file-pen"></i> Contoh Format Scene
             </button>
             <button 
               type="button" 
-              onclick="addSceneRow()" 
+              onclick="addConceptSceneRow()" 
               class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-xl transition flex items-center gap-1.5"
             >
               <i class="fa-solid fa-plus"></i> Tambah Scene
@@ -276,52 +370,95 @@
           </div>
         </div>
 
-        <!-- Voice & Settings -->
-        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-          <div>
-            <label class="block text-slate-400 mb-1.5 font-medium">Pilihan Pengisi Suara (AI Voiceover)</label>
-            <select id="voiceSelect" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 focus:ring-1 focus:ring-rose-500 focus:outline-none">
-              <option value="id-ID-ArdiNeural">👨 Ardi Neural (Pria - Meyakinkan, Ramah, Tegas)</option>
-              <option value="id-ID-GadisNeural">👩 Gadis Neural (Wanita - Positif, Enerjik, Segar)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1.5 font-medium">Mode Sinkronisasi Tempo</label>
-            <div class="w-full bg-slate-900/50 border border-slate-800 text-slate-300 rounded-xl px-3 py-2 flex items-center gap-2">
-              <i class="fa-solid fa-gauge-high text-emerald-400"></i>
-              <span>Dynamic Speed Ramp (Otomatis)</span>
-            </div>
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1.5 font-medium">Format Output</label>
-            <div class="w-full bg-slate-900/50 border border-slate-800 text-slate-300 rounded-xl px-3 py-2 flex items-center gap-2">
-              <i class="fa-solid fa-mobile-screen-button text-rose-400"></i>
-              <span>1080x1920 (9:16 TikTok / Reels)</span>
-            </div>
-          </div>
-        </div>
+        <!-- Concept Scenes Table / List -->
+        <div class="mt-5 space-y-3" id="conceptScenesList"></div>
 
-        <!-- Scenes Builder Form -->
-        <div class="mt-6">
-          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Daftar Scene Iklan Baru</h3>
-          <div id="scenesBuilderList" class="space-y-3"></div>
-        </div>
-
-        <!-- Render Button & Status -->
+        <!-- Auto-Match Button -->
         <div class="mt-6 pt-4 border-t border-slate-800 flex flex-col items-center">
           <button 
             type="button" 
-            id="btnRenderAd" 
-            onclick="handleAssembleAd()"
-            class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold py-3.5 px-8 rounded-2xl text-sm transition shadow-lg shadow-emerald-950 flex items-center gap-2"
+            id="btnAutoMatch" 
+            onclick="handleAutoMatchScenes()"
+            class="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold py-3.5 px-8 rounded-2xl text-sm transition shadow-lg shadow-rose-950 flex items-center gap-2"
           >
-            <i id="btnRenderIcon" class="fa-solid fa-bolt"></i>
-            <span id="btnRenderText">RENDER IKLAN BARU (Voiceover + Tempo Sync)</span>
+            <i id="btnAutoMatchIcon" class="fa-solid fa-brain"></i>
+            <span id="btnAutoMatchText">🧠 AI Auto-Match Puzzle & Generate Prompt Omni</span>
           </button>
-
-          <div id="renderProgress" class="hidden mt-4 text-xs text-emerald-300 flex items-center space-x-2">
+          <div id="matchProgress" class="hidden mt-4 text-xs text-rose-300 flex items-center space-x-2">
             <i class="fa-solid fa-spinner fa-spin"></i>
-            <span id="renderStatusMsg">Menghasilkan Voiceover & melakukan speed-ramping...</span>
+            <span id="matchStatusMsg">Gemini sedang mencocokkan skrip dengan koleksi klip puzzle...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Matched Scenes Review & Omni Video Slots -->
+      <div id="matchedPlanContainer" class="hidden glass p-6 rounded-2xl space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs">2</span>
+              <h2 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+                Susunan Klip & Slot Video Omni (Hybrid)
+              </h2>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">
+              Klip puzzle TikTok telah dicocokkan otomatis. Anda bisa menyalin prompt Omni untuk re-generate angle kamera baru di tool AI, lalu unggah videonya di slot per scene. Jika belum ada video Omni, sistem otomatis menggunakan klip puzzle asli.
+            </p>
+          </div>
+          <span class="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full font-bold uppercase tracking-wider" id="matchedSceneCountBadge">
+            0 Scene Siap
+          </span>
+        </div>
+
+        <!-- Matched Scenes Cards -->
+        <div id="matchedCardsList" class="space-y-4"></div>
+
+        <!-- Step 3: Voice & Render Settings -->
+        <div class="pt-6 border-t border-slate-800">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-6 h-6 rounded-full bg-cyan-600 text-white font-bold flex items-center justify-center text-xs">3</span>
+            <h3 class="text-base font-bold text-white">Pengisi Suara (AI Voiceover) & Render Final</h3>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs mb-6">
+            <div>
+              <label class="block text-slate-400 mb-1.5 font-medium">Pilihan Pengisi Suara (AI Voiceover)</label>
+              <select id="voiceSelect" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 focus:ring-1 focus:ring-rose-500 focus:outline-none">
+                <option value="id-ID-ArdiNeural">👨 Ardi Neural (Pria - Meyakinkan, Ramah, Tegas)</option>
+                <option value="id-ID-GadisNeural">👩 Gadis Neural (Wanita - Positif, Enerjik, Segar)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1.5 font-medium">Sinkronisasi Kecepatan Video</label>
+              <div class="w-full bg-slate-900/50 border border-slate-800 text-slate-300 rounded-xl px-3 py-2 flex items-center gap-2">
+                <i class="fa-solid fa-gauge-high text-emerald-400"></i>
+                <span>Dynamic Speed Ramp (Pas Suara)</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1.5 font-medium">Format Output Iklan</label>
+              <div class="w-full bg-slate-900/50 border border-slate-800 text-slate-300 rounded-xl px-3 py-2 flex items-center gap-2">
+                <i class="fa-solid fa-mobile-screen-button text-rose-400"></i>
+                <span>1080x1920 (9:16 Vertikal HD)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center">
+            <button 
+              type="button" 
+              id="btnRenderFinalAd" 
+              onclick="handleAssembleMatchedAd()"
+              class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold py-4 px-10 rounded-2xl text-sm transition shadow-lg shadow-emerald-950 flex items-center gap-2"
+            >
+              <i id="btnRenderFinalIcon" class="fa-solid fa-bolt"></i>
+              <span id="btnRenderFinalText">🚀 RENDER IKLAN FINAL (Voiceover + Tempo Sync)</span>
+            </button>
+
+            <div id="renderFinalProgress" class="hidden mt-4 text-xs text-emerald-300 flex items-center space-x-2">
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              <span id="renderFinalStatusMsg">Memproses Voiceover & merakit klip final...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -330,9 +467,9 @@
       <div id="finalAdContainer" class="hidden glass p-6 rounded-2xl">
         <div class="text-center mb-4">
           <span class="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-            🎉 Video Iklan Siap Tayang!
+            🎉 Video Iklan Siap Ditayangkan!
           </span>
-          <h3 class="text-xl font-bold text-white mt-2">Iklan Berhasil Dibuat & Disinkronkan</h3>
+          <h3 class="text-xl font-bold text-white mt-2">Iklan Berhasil Dirakit & Disinkronkan</h3>
           <p class="text-xs text-slate-400 mt-1" id="finalAdMeta"></p>
         </div>
 
@@ -347,7 +484,7 @@
             download="iklan_baru_final.mp4"
             class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold py-2.5 px-5 rounded-xl transition flex items-center gap-2 shadow"
           >
-            <i class="fa-solid fa-download"></i> Unduh File MP4
+            <i class="fa-solid fa-download"></i> Unduh File MP4 Final
           </a>
         </div>
       </div>
@@ -387,6 +524,202 @@
       }
     }
 
+    let currentVideoPath = '';
+    let localVideosList = [];
+
+    function setInputSourceMode(mode) {
+      const btnTiktok = document.getElementById('btnSourceTiktok');
+      const btnBatch = document.getElementById('btnSourceBatch');
+      const btnUpload = document.getElementById('btnSourceUpload');
+      const btnLocal = document.getElementById('btnSourceLocal');
+      const formTiktok = document.getElementById('formTiktok');
+      const formBatch = document.getElementById('formBatch');
+      const formUpload = document.getElementById('formUpload');
+      const formLocal = document.getElementById('formLocal');
+
+      [btnTiktok, btnBatch, btnUpload, btnLocal].forEach(b => {
+        if (b) b.className = "px-3.5 py-1.5 rounded-lg font-semibold transition text-slate-400 hover:text-slate-200";
+      });
+      [formTiktok, formBatch, formUpload, formLocal].forEach(f => {
+        if (f) f.classList.add('hidden');
+      });
+
+      if (mode === 'tiktok') {
+        btnTiktok.className = "px-3.5 py-1.5 rounded-lg font-semibold transition bg-rose-600 text-white shadow";
+        formTiktok.classList.remove('hidden');
+      } else if (mode === 'batch') {
+        btnBatch.className = "px-3.5 py-1.5 rounded-lg font-semibold transition bg-rose-600 text-white shadow";
+        formBatch.classList.remove('hidden');
+      } else if (mode === 'upload') {
+        btnUpload.className = "px-3.5 py-1.5 rounded-lg font-semibold transition bg-rose-600 text-white shadow";
+        formUpload.classList.remove('hidden');
+      } else if (mode === 'local') {
+        btnLocal.className = "px-3.5 py-1.5 rounded-lg font-semibold transition bg-rose-600 text-white shadow";
+        formLocal.classList.remove('hidden');
+        loadLocalVideos();
+      }
+    }
+
+    async function handleBatchDownloadTikTok() {
+      const text = document.getElementById('batchTiktokUrls').value.trim();
+      if (!text) {
+        alert("Masukkan minimal 1 link TikTok (1 link per baris).");
+        return;
+      }
+      const urls = text.split('\n').map(u => u.trim()).filter(u => u.length > 0 && u.startsWith('http'));
+      if (urls.length === 0) {
+        alert("Tidak ada link URL yang valid (harus diawali http/https).");
+        return;
+      }
+
+      const btn = document.getElementById('btnBatchDownload');
+      const btnText = document.getElementById('btnBatchText');
+      const btnIcon = document.getElementById('btnBatchIcon');
+      btn.disabled = true;
+      btnText.innerText = `Memproses ${urls.length} video TikTok...`;
+      btnIcon.className = "fa-solid fa-spinner fa-spin";
+
+      try {
+        const res = await fetch('/api/batch-download-tiktok', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ urls: urls })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || "Gagal memproses batch video TikTok");
+        }
+
+        alert(`Selesai! Berhasil memproses ${data.summary?.length || 0} video, menambahkan ${data.new_puzzles_added || 0} kepingan puzzle baru (Total: ${data.total_puzzles || 0} puzzle).`);
+        document.getElementById('batchTiktokUrls').value = '';
+        loadPuzzles();
+        switchTab('tab-puzzles');
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btnText.innerText = "Download & Potong Semua Jadi Puzzle";
+        btnIcon.className = "fa-solid fa-cloud-arrow-down";
+      }
+    }
+
+    async function loadLocalVideos() {
+      try {
+        const res = await fetch('/api/local-videos');
+        const data = await res.json();
+        if (data.success && data.videos) {
+          localVideosList = data.videos;
+          document.getElementById('localVideoCount').innerText = localVideosList.length;
+          const select = document.getElementById('localVideoSelect');
+          select.innerHTML = '';
+          if (localVideosList.length === 0) {
+            select.innerHTML = '<option value="">(Belum ada video MP4 di folder downloads)</option>';
+          } else {
+            localVideosList.forEach((v, idx) => {
+              const opt = document.createElement('option');
+              opt.value = v.path;
+              opt.innerText = `${v.name} (${v.size_mb} MB)`;
+              select.appendChild(opt);
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error loading local videos:', err);
+      }
+    }
+
+    function handleFileInputChange(e) {
+      const file = e.target.files[0];
+      if (file) {
+        uploadAndAnalyzeFile(file);
+      }
+    }
+
+    function handleFileDrop(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.remove('border-rose-500');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        uploadAndAnalyzeFile(e.dataTransfer.files[0]);
+      }
+    }
+
+    async function uploadAndAnalyzeFile(file) {
+      if (!file.name.toLowerCase().endsWith('.mp4')) {
+        alert("Harap pilih file video berformat MP4.");
+        return;
+      }
+      const statusDiv = document.getElementById('analyzeStatus');
+      const statusMsg = document.getElementById('analyzeStatusMsg');
+      statusDiv.classList.remove('hidden');
+      statusMsg.innerText = `Mengunggah ${file.name} (${(file.size / (1024*1024)).toFixed(1)} MB)...`;
+
+      try {
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            'X-Filename': encodeURIComponent(file.name)
+          },
+          body: file
+        });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok || !uploadData.success) {
+          throw new Error(uploadData.error || "Gagal mengunggah video.");
+        }
+
+        currentVideoPath = uploadData.video_path;
+        statusMsg.innerText = "Video terunggah! Gemini sedang menganalisis video (frame, audio, hook)...";
+
+        const analyzeRes = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ video_path: currentVideoPath })
+        });
+        const analyzeData = await analyzeRes.json();
+        if (!analyzeRes.ok || !analyzeData.success) {
+          throw new Error(analyzeData.error || "Gagal menganalisis video dengan Gemini.");
+        }
+
+        renderAnalysis(analyzeData.data);
+        loadLocalVideos();
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        statusDiv.classList.add('hidden');
+      }
+    }
+
+    async function handleAnalyzeSelectedLocal() {
+      const select = document.getElementById('localVideoSelect');
+      const selectedPath = select.value;
+      if (!selectedPath) {
+        alert("Pilih file video terlebih dahulu.");
+        return;
+      }
+
+      const statusDiv = document.getElementById('analyzeStatus');
+      const statusMsg = document.getElementById('analyzeStatusMsg');
+      statusDiv.classList.remove('hidden');
+      statusMsg.innerText = "Mengirim video ke Gemini 2.5 untuk dibedah...";
+
+      try {
+        currentVideoPath = selectedPath;
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ video_path: selectedPath })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || "Gagal menganalisis video");
+        }
+        renderAnalysis(data.data);
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        statusDiv.classList.add('hidden');
+      }
+    }
+
     // Load initial analysis if available
     window.addEventListener('DOMContentLoaded', async () => {
       try {
@@ -400,6 +733,8 @@
       } catch (e) {}
 
       loadPuzzles();
+      loadLocalVideos();
+      loadImprovementTemplate();
     });
 
     // Analyze with Gemini
@@ -430,7 +765,9 @@
         if (!res.ok || !result.success) {
           throw new Error(result.error || "Gagal menganalisis video");
         }
+        currentVideoPath = result.video_path || '';
         renderAnalysis(result.data);
+        loadLocalVideos();
       } catch (err) {
         alert("Error: " + err.message);
       } finally {
@@ -474,9 +811,8 @@
               ${sc.peran || 'Ad Scene'}
             </span>
           </td>
-          <td class="py-2.5 px-3 text-slate-300 max-w-[220px]">${sc.aksi_visual || '-'}</td>
-          <td class="py-2.5 px-3 text-slate-300 max-w-[220px] italic">"${sc.skrip_suara || '-'}"</td>
-          <td class="py-2.5 px-3 text-rose-300/90 font-mono text-[11px] max-w-[240px]">${sc.rekomendasi_edit_omni || '-'}</td>
+          <td class="py-2.5 px-3 text-slate-300 max-w-[280px]">${sc.aksi_visual || '-'}</td>
+          <td class="py-2.5 px-3 text-slate-300 max-w-[280px] italic">"${sc.skrip_suara || '-'}"</td>
         `;
         tbody.appendChild(tr);
       });
@@ -506,7 +842,10 @@
         const res = await fetch('/api/slice', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ scenes: currentAnalysisData.breakdown_scene })
+          body: JSON.stringify({ 
+            scenes: currentAnalysisData.breakdown_scene,
+            video_path: currentVideoPath
+          })
         });
         const result = await res.json();
         if (!res.ok || !result.success) {
@@ -607,160 +946,372 @@
       modal.classList.add('hidden');
     }
 
-    // Tab 3: Studio Perakit Iklan
-    let sceneRows = [];
+    // Tab 3: Studio Perakit Iklan (Persona, Angle, Offer + AI Matcher + Omni)
+    let conceptScenes = [];
+    let matchedPlan = [];
 
-    function addSceneRow(initialData = null) {
+    function addConceptSceneRow(initialData = null) {
       const id = Date.now() + Math.random().toString(36).substring(2, 5);
       const row = initialData || {
         id: id,
-        clip_path: availablePuzzles[sceneRows.length % availablePuzzles.length]?.clip_path || '',
-        script: ''
+        scene_name: `Scene ${conceptScenes.length + 1}`,
+        visual_intent: '',
+        voice_script: ''
       };
-      sceneRows.push(row);
-      renderSceneRows();
+      conceptScenes.push(row);
+      renderConceptScenes();
     }
 
-    function removeSceneRow(index) {
-      sceneRows.splice(index, 1);
-      renderSceneRows();
+    function removeConceptSceneRow(index) {
+      conceptScenes.splice(index, 1);
+      renderConceptScenes();
     }
 
-    function updateSceneBuilderDropdowns() {
-      if (sceneRows.length === 0 && availablePuzzles.length > 0) {
-        loadExampleScript();
-      } else {
-        renderSceneRows();
+    function updateConceptSceneField(idx, field, val) {
+      if (conceptScenes[idx]) {
+        conceptScenes[idx][field] = val;
       }
     }
 
-    function renderSceneRows() {
-      const container = document.getElementById('scenesBuilderList');
+    function renderConceptScenes() {
+      const container = document.getElementById('conceptScenesList');
       container.innerHTML = '';
 
-      if (sceneRows.length === 0) {
-        container.innerHTML = `<div class="text-xs text-slate-500 p-4 text-center">Belum ada scene. Klik 'Tambah Scene' atau 'Isi Contoh Skrip'.</div>`;
+      if (conceptScenes.length === 0) {
+        container.innerHTML = `
+          <div class="text-xs text-slate-500 p-6 text-center border border-dashed border-slate-800 rounded-xl">
+            <i class="fa-solid fa-pen-nib text-xl mb-2 text-slate-600 block"></i>
+            Belum ada rancangan scene. Klik <strong>"+ Tambah Scene"</strong> atau <strong>"Contoh Format Scene"</strong> untuk memulai.
+          </div>
+        `;
         return;
       }
 
-      sceneRows.forEach((row, idx) => {
+      conceptScenes.forEach((row, idx) => {
         const div = document.createElement('div');
-        div.className = "glass p-4 rounded-xl border border-slate-800/80 flex flex-col md:flex-row gap-4 items-start md:items-center text-xs";
-
-        let optionsHtml = availablePuzzles.map(p => {
-          const selected = (p.clip_path === row.clip_path) ? 'selected' : '';
-          return `<option value="${p.clip_path}" ${selected}>Klip #${p.scene} (${p.duration}s): ${p.aksi_visual?.substring(0, 45) || p.filename}...</option>`;
-        }).join('');
-
+        div.className = "glass p-4 rounded-xl border border-slate-800/80 flex flex-col md:flex-row gap-3 items-start text-xs";
         div.innerHTML = `
-          <div class="flex items-center gap-2 font-bold text-rose-400 flex-shrink-0">
-            <span class="w-6 h-6 rounded-full bg-rose-500/20 flex items-center justify-center text-xs">
-              ${idx + 1}
-            </span>
-            <span>Scene ${idx + 1}</span>
+          <div class="w-full md:w-36 flex-shrink-0">
+            <label class="block text-[11px] font-semibold text-rose-400 mb-1">Nama / Peran Scene:</label>
+            <input 
+              type="text" 
+              value="${row.scene_name || ''}" 
+              placeholder="Misal: Hook (0-3s)" 
+              oninput="updateConceptSceneField(${idx}, 'scene_name', this.value)"
+              class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 font-bold focus:ring-1 focus:ring-rose-500 focus:outline-none"
+            >
           </div>
 
           <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Pilih Potongan Puzzle:</label>
-              <select onchange="updateSceneClip(${idx}, this.value)" class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg p-2 focus:outline-none">
-                <option value="">-- Pilih Klip Video --</option>
-                ${optionsHtml}
-              </select>
+              <label class="block text-[11px] font-semibold text-slate-300 mb-1">Arah Visual yang Diinginkan (Angle/Objek):</label>
+              <textarea 
+                rows="2"
+                placeholder="Contoh: Plafon mobil kusam dicoret spidol permanen tebal warna hitam"
+                oninput="updateConceptSceneField(${idx}, 'visual_intent', this.value)"
+                class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+              >${row.visual_intent || ''}</textarea>
             </div>
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Teks Voiceover AI Baru (Narasi Iklan):</label>
-              <input 
-                type="text" 
-                value="${row.script || ''}" 
-                placeholder="Contoh: Jangan biarkan motor kamu kusam dan berbulu!"
-                oninput="updateSceneScript(${idx}, this.value)" 
-                class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 focus:ring-1 focus:ring-rose-500 focus:outline-none"
-              >
+              <label class="block text-[11px] font-semibold text-emerald-300 mb-1">Skrip Suara Voiceover (Narasi Iklan):</label>
+              <textarea 
+                rows="2"
+                placeholder="Contoh: Jangan buru-buru ganti atap mobil kamu yang kusam!"
+                oninput="updateConceptSceneField(${idx}, 'voice_script', this.value)"
+                class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+              >${row.voice_script || ''}</textarea>
             </div>
           </div>
 
-          <button onclick="removeSceneRow(${idx})" class="text-slate-500 hover:text-rose-400 p-2">
-            <i class="fa-regular fa-trash-can"></i>
+          <button onclick="removeConceptSceneRow(${idx})" class="text-slate-500 hover:text-rose-400 p-2 mt-4 md:mt-0 flex-shrink-0" title="Hapus Scene">
+            <i class="fa-regular fa-trash-can text-sm"></i>
           </button>
         `;
         container.appendChild(div);
       });
     }
 
-    function updateSceneClip(idx, val) {
-      if (sceneRows[idx]) sceneRows[idx].clip_path = val;
-    }
-
-    function updateSceneScript(idx, val) {
-      if (sceneRows[idx]) sceneRows[idx].script = val;
-    }
-
-    function usePuzzleInStudio(clipPath) {
-      addSceneRow({ clip_path: clipPath, script: '' });
-      switchTab('tab-remix');
-    }
-
-    function loadExampleScript() {
-      if (availablePuzzles.length === 0) {
-        alert("Potong video terlebih dahulu di Tab 1 agar kepingan puzzle tersedia.");
-        return;
-      }
-      sceneRows = [
+    function loadImprovementTemplate() {
+      conceptScenes = [
         {
-          clip_path: availablePuzzles[0]?.clip_path || '',
-          script: "Jangan buru-buru ganti body motor kamu yang sudah kusam dan berbulu putih!"
+          scene_name: "Hook (3 Detik)",
+          visual_intent: "Aksi ekstrem mencoret plafon atau permukaan kusam dengan spidol permanen hitam",
+          voice_script: "Plafon mobil kamu kusam dan bernoda permanen kayak gini? Jangan buru-buru diganti!"
         },
         {
-          clip_path: availablePuzzles[2]?.clip_path || availablePuzzles[1]?.clip_path || '',
-          script: "Cukup poles sekali pakai ini, langsung hitam pekat seperti baru keluar dealer."
+          scene_name: "Problem & Edukasi",
+          visual_intent: "Tunjukkan bahan kain bludru sensitif yang bisa rusak jika disikat kasar",
+          voice_script: "Kalau disikat pakai sabun biasa, serat bludrunya bisa rontok dan malah makin hancur."
         },
         {
-          clip_path: availablePuzzles[7]?.clip_path || availablePuzzles[3]?.clip_path || '',
-          script: "Udah kita tes cuci berkali-kali pakai sabun dan air deras, hitamnya tetap awet dan tidak luntur!"
+          scene_name: "Solusi Foam Active",
+          visual_intent: "Penyemprotan botol foam cleaner, busa putih tebal mengembang menyerap noda",
+          voice_script: "Cukup semprot foam cleaner khusus ini, busa aktifnya langsung angkat kotoran ke permukaan."
         },
         {
-          clip_path: availablePuzzles[11]?.clip_path || availablePuzzles[availablePuzzles.length - 1]?.clip_path || '',
-          script: "Harganya cuma 30 ribuan plus gratis spons aplikator. Klik keranjang kuning sekarang!"
+          scene_name: "Klimaks Demo (Before-After)",
+          visual_intent: "Lap dengan kain microfiber kuning, noda spidol langsung hilang bersih sempurna",
+          voice_script: "Sekali usap pakai microfiber, langsung bersih kinclong seperti baru keluar dari showroom!"
+        },
+        {
+          scene_name: "Penawaran & CTA",
+          visual_intent: "Tunjukkan botol produk dengan tangan antusias dan panah ke keranjang",
+          voice_script: "Lagi promo diskon plus gratis lap microfiber. Klik keranjang kuning sekarang sebelum kehabisan!"
         }
       ];
-      renderSceneRows();
+      renderConceptScenes();
     }
 
-    // Assemble new ad
-    async function handleAssembleAd() {
-      if (sceneRows.length === 0) {
-        alert("Tambahkan minimal 1 scene untuk dirakit.");
+    // Auto-Match with Gemini
+    async function handleAutoMatchScenes() {
+      if (conceptScenes.length === 0) {
+        alert("Tambahkan minimal 1 scene rancangan terlebih dahulu.");
         return;
       }
 
-      for (let i = 0; i < sceneRows.length; i++) {
-        if (!sceneRows[i].clip_path) {
-          alert(`Scene ${i + 1} belum memilih klip puzzle video.`);
-          return;
+      if (availablePuzzles.length === 0) {
+        alert("Perpustakaan puzzle masih kosong. Silakan download & potong video TikTok bahan di Tab 1 terlebih dahulu.");
+        return;
+      }
+
+      const btn = document.getElementById('btnAutoMatch');
+      const btnText = document.getElementById('btnAutoMatchText');
+      const btnIcon = document.getElementById('btnAutoMatchIcon');
+      const progressDiv = document.getElementById('matchProgress');
+      const planContainer = document.getElementById('matchedPlanContainer');
+
+      btn.disabled = true;
+      btnText.innerText = "Gemini sedang mencocokkan puzzle...";
+      btnIcon.className = "fa-solid fa-spinner fa-spin";
+      progressDiv.classList.remove('hidden');
+
+      try {
+        const payload = conceptScenes.map(s => ({
+          scene_name: s.scene_name,
+          visual_intent: s.visual_intent,
+          voice_script: s.voice_script
+        }));
+
+        const res = await fetch('/api/match-scenes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenes: payload })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || "Gagal mencocokkan scene");
         }
+
+        matchedPlan = data.plan || [];
+        document.getElementById('matchedSceneCountBadge').innerText = `${matchedPlan.length} Scene Siap`;
+        renderMatchedCards();
+        planContainer.classList.remove('hidden');
+        planContainer.scrollIntoView({ behavior: 'smooth' });
+      } catch (err) {
+        alert("Gagal Auto-Match: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btnText.innerText = "🧠 AI Auto-Match Puzzle & Generate Prompt Omni";
+        btnIcon.className = "fa-solid fa-brain";
+        progressDiv.classList.add('hidden');
+      }
+    }
+
+    // Render Matched Cards
+    function renderMatchedCards() {
+      const container = document.getElementById('matchedCardsList');
+      container.innerHTML = '';
+
+      matchedPlan.forEach((sc, idx) => {
+        const card = document.createElement('div');
+        card.className = "glass p-5 rounded-2xl border border-slate-800 space-y-4";
+
+        const isOmni = !!sc.is_omni;
+        const currentActiveClip = isOmni ? sc.omni_clip_url : sc.clip_url;
+
+        card.innerHTML = `
+          <!-- Header Card -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-rose-600 text-white font-bold flex items-center justify-center text-xs">
+                ${idx + 1}
+              </span>
+              <h4 class="text-sm font-bold text-white">${sc.scene_name}</h4>
+              <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">
+                ${sc.selected_puzzle_filename}
+              </span>
+            </div>
+
+            <!-- Active Source Badge -->
+            <div class="flex items-center gap-2">
+              ${isOmni ? `
+                <span class="text-[11px] bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1.5">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Menggunakan Video Omni
+                </span>
+                <button onclick="handleRevertToPuzzle(${idx})" class="text-[11px] text-slate-400 hover:text-slate-200 underline">
+                  Kembali ke Puzzle Asli
+                </button>
+              ` : `
+                <span class="text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1.5">
+                  <i class="fa-solid fa-puzzle-piece"></i> Klip Puzzle Asli
+                </span>
+              `}
+            </div>
+          </div>
+
+          <!-- Content Grid: Video Preview & Omni Slot -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+            
+            <!-- Video Player -->
+            <div class="md:col-span-3 aspect-[9/16] bg-black rounded-xl overflow-hidden relative shadow border border-slate-800">
+              <video src="${currentActiveClip}" controls playsinline class="w-full h-full object-cover"></video>
+            </div>
+
+            <!-- Details & Prompts -->
+            <div class="md:col-span-9 space-y-3 text-xs">
+              
+              <!-- Script & Reasoning -->
+              <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                <p><strong class="text-emerald-400">🎙️ Skrip Suara:</strong> <span class="text-slate-100 italic font-medium">"${sc.voice_script || '-'}"</span></p>
+                <p><strong class="text-slate-400">👁️ Arah Visual:</strong> <span class="text-slate-300">${sc.visual_intent || '-'}</span></p>
+                <p><strong class="text-cyan-400">💡 Alasan Kecocokan Gemini:</strong> <span class="text-slate-400">${sc.match_reason || '-'}</span></p>
+              </div>
+
+              <!-- Omni Camera Prompt Box -->
+              <div class="bg-purple-950/20 border border-purple-800/40 p-3.5 rounded-xl space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-camera-rotate"></i> Prompt Edit Angle Kamera Omni (Eye-Catching)
+                  </span>
+                  <button 
+                    onclick="copyOmniPrompt('${encodeURIComponent(sc.omni_camera_prompt || '')}')" 
+                    class="bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/30 px-2.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center gap-1"
+                  >
+                    <i class="fa-regular fa-copy"></i> Salin Prompt
+                  </button>
+                </div>
+                <p class="text-[11px] text-purple-200 font-mono leading-relaxed bg-black/40 p-2.5 rounded-lg border border-purple-900/40 select-all">
+                  ${sc.omni_camera_prompt || '-'}
+                </p>
+                <p class="text-[10px] text-purple-400">
+                  <i class="fa-solid fa-circle-info mr-1"></i>
+                  Gunakan prompt ini di Gemini Omni / AI Video Gen untuk menghasilkan klip dengan angle kamera yang lebih sinematik.
+                </p>
+              </div>
+
+              <!-- Upload Omni Video Slot -->
+              <div class="bg-slate-900/80 p-3 rounded-xl border border-dashed border-slate-700 hover:border-purple-500/60 transition flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="flex items-center gap-2 text-slate-300">
+                  <i class="fa-solid fa-cloud-arrow-up text-purple-400 text-lg"></i>
+                  <div>
+                    <p class="font-semibold text-[11px]">Upload Hasil Video Omni untuk Scene Ini (Opsional)</p>
+                    <p class="text-[10px] text-slate-500">File format .mp4 hasil render AI kamera baru</p>
+                  </div>
+                </div>
+                <div>
+                  <input type="file" id="omniFileInput_${idx}" accept="video/mp4,video/*" class="hidden" onchange="handleOmniFileSelected(${idx}, event)">
+                  <button 
+                    type="button" 
+                    onclick="document.getElementById('omniFileInput_${idx}').click()" 
+                    class="bg-purple-600 hover:bg-purple-500 text-white font-semibold px-4 py-1.5 rounded-xl text-xs transition shadow flex items-center gap-1.5"
+                  >
+                    <i class="fa-solid fa-upload"></i> Pilih File Video Omni
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function copyOmniPrompt(encodedPrompt) {
+      const text = decodeURIComponent(encodedPrompt);
+      navigator.clipboard.writeText(text);
+      alert("Prompt Edit Kamera Omni berhasil disalin ke clipboard!");
+    }
+
+    // Handle Upload Omni for specific scene
+    async function handleOmniFileSelected(idx, event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.name.toLowerCase().endsWith('.mp4')) {
+        alert("Pilih file video MP4.");
+        return;
+      }
+
+      const sceneName = matchedPlan[idx]?.scene_name || `Scene_${idx + 1}`;
+      alert(`Mengunggah video Omni untuk ${sceneName}...`);
+
+      try {
+        const res = await fetch('/api/upload-omni', {
+          method: 'POST',
+          headers: {
+            'X-Filename': encodeURIComponent(file.name),
+            'X-Scene-Idx': String(idx + 1).padStart(2, '0')
+          },
+          body: file
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || "Gagal mengunggah video Omni");
+        }
+
+        // Update matched plan with Omni video
+        matchedPlan[idx].is_omni = true;
+        matchedPlan[idx].omni_clip_path = data.clip_path;
+        matchedPlan[idx].omni_clip_url = data.clip_url;
+        renderMatchedCards();
+        alert(`Berhasil! Video Omni terpasang untuk ${sceneName}.`);
+      } catch (err) {
+        alert("Error upload Omni: " + err.message);
+      }
+    }
+
+    function handleRevertToPuzzle(idx) {
+      if (matchedPlan[idx]) {
+        matchedPlan[idx].is_omni = false;
+        renderMatchedCards();
+      }
+    }
+
+    // Final Assembly from Matched Plan
+    async function handleAssembleMatchedAd() {
+      if (matchedPlan.length === 0) {
+        alert("Lakukan Auto-Match scene terlebih dahulu.");
+        return;
       }
 
       const voice = document.getElementById('voiceSelect').value;
-      const btn = document.getElementById('btnRenderAd');
-      const btnText = document.getElementById('btnRenderText');
-      const btnIcon = document.getElementById('btnRenderIcon');
-      const progressDiv = document.getElementById('renderProgress');
+      const btn = document.getElementById('btnRenderFinalAd');
+      const btnText = document.getElementById('btnRenderFinalText');
+      const btnIcon = document.getElementById('btnRenderFinalIcon');
+      const progressDiv = document.getElementById('renderFinalProgress');
       const finalContainer = document.getElementById('finalAdContainer');
 
       btn.disabled = true;
-      btnText.innerText = "Merakit Video...";
+      btnText.innerText = "Merakit Video & Tempo Sync...";
       btnIcon.className = "fa-solid fa-spinner fa-spin";
       progressDiv.classList.remove('hidden');
       finalContainer.classList.add('hidden');
 
       try {
+        // Compile scenes list
+        const scenesToAssemble = matchedPlan.map(sc => ({
+          clip_path: sc.is_omni && sc.omni_clip_path ? sc.omni_clip_path : sc.clip_path,
+          script: sc.voice_script || ''
+        }));
+
         const res = await fetch('/api/assemble', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             voice: voice,
-            scenes: sceneRows
+            scenes: scenesToAssemble
           })
         });
 
@@ -781,7 +1332,7 @@
         alert("Gagal Merakit Iklan: " + err.message);
       } finally {
         btn.disabled = false;
-        btnText.innerText = "RENDER IKLAN BARU (Voiceover + Tempo Sync)";
+        btnText.innerText = "🚀 RENDER IKLAN FINAL (Voiceover + Tempo Sync)";
         btnIcon.className = "fa-solid fa-bolt";
         progressDiv.classList.add('hidden');
       }
@@ -796,15 +1347,15 @@
     function copyScriptFormat() {
       if (!currentAnalysisData) return;
       const scenes = currentAnalysisData.breakdown_scene || [];
-      let text = "FORMULA IKLAN KOMPETITOR UNTUK DIBUATKAN SKRIP BARU:\\n\\n";
-      text += `HOOK ASLI: "${currentAnalysisData.hook?.skrip_suara}"\\n\\n`;
-      text += "BREAKDOWN SCENE:\\n";
+      let text = "FORMULA IKLAN KOMPETITOR UNTUK DIBUATKAN SKRIP BARU:\n\n";
+      text += `HOOK ASLI: "${currentAnalysisData.hook?.skrip_suara}"\n\n`;
+      text += "BREAKDOWN SCENE:\n";
       scenes.forEach(s => {
-        text += `- Scene ${s.scene} (${s.detik_mulai}s-${s.detik_selesai}s) [${s.peran}]: Visual = "${s.aksi_visual}", Suara = "${s.skrip_suara}"\\n`;
+        text += `- Scene ${s.scene} (${s.detik_mulai}s-${s.detik_selesai}s) [${s.peran}]: Visual = "${s.aksi_visual}", Suara = "${s.skrip_suara}"\n`;
       });
-      text += "\\nTolong buatkan 3 alternatif skrip iklan baru dengan struktur Hook -> Problem -> Solution -> Social Proof -> CTA yang mereferensikan aksi visual tersebut.";
+      text += "\nTolong buatkan skrip iklan baru yang mereferensikan aksi visual tersebut.";
       navigator.clipboard.writeText(text);
-      alert("Format skrip berhasil disalin ke clipboard! Silakan paste ke AI lain (ChatGPT/Claude/Gemini).");
+      alert("Format skrip berhasil disalin ke clipboard!");
     }
   </script>
 </body>

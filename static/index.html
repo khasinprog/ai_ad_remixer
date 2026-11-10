@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Video Ad Studio & Competitor Remixer</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .glass {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(244, 63, 94, 0.4);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-rose-500 selection:text-white">
+
+  <!-- Navbar -->
+  <header class="border-b border-slate-800/80 bg-slate-900/70 sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-rose-500 to-amber-400 p-[2px]">
+          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+            <i class="fa-solid fa-wand-magic-sparkles text-rose-500 text-lg"></i>
+          </div>
+        </div>
+        <div>
+          <h1 class="text-base md:text-lg font-bold bg-gradient-to-r from-rose-400 via-purple-300 to-cyan-400 bg-clip-text text-transparent">
+            AI Ad Studio & Remixer
+          </h1>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Reverse Engineer Video &bull; Puzzle Slicer &bull; TTS &bull; Tempo Sync</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs md:text-sm">
+        <button onclick="switchTab('tab-reverse')" id="nav-reverse" class="px-3.5 py-1.5 rounded-lg font-medium transition bg-rose-600 text-white shadow">
+          <i class="fa-solid fa-magnifying-glass mr-1.5"></i>1. Bedah Kompetitor
+        </button>
+        <button onclick="switchTab('tab-puzzles')" id="nav-puzzles" class="px-3.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-puzzle-piece mr-1.5"></i>2. Puzzle Library (<span id="puzzleBadgeCount">0</span>)
+        </button>
+        <button onclick="switchTab('tab-remix')" id="nav-remix" class="px-3.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-clapperboard mr-1.5"></i>3. Studio Perakit Iklan
+        </button>
+      </nav>
+
+      <!-- Gemini Connected Badge -->
+      <div class="hidden lg:flex items-center space-x-2 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span>Gemini 2.5 Active</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-1 flex flex-col">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: BEDAH VIDEO KOMPETITOR (REVERSE ENG) -->
+    <!-- ========================================== -->
+    <section id="tab-reverse" class="space-y-6">
+      
+      <!-- Input Card -->
+      <div class="glass p-6 rounded-2xl">
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="text-2xl md:text-3xl font-extrabold mb-2">
+            Ekstrak Formula Iklan Kompetitor dengan <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-400">Gemini AI</span>
+          </h2>
+          <p class="text-slate-400 text-xs md:text-sm mb-6">
+            Masukkan link video TikTok pemenang. Gemini akan mengekstrak Hook, transkrip suara penuh, serta breakdown visual detik-by-detik lengkap dengan rekomendasi prompt edit visual Omni.
+          </p>
+
+          <form onsubmit="handleAnalyze(event)" class="relative flex items-center glass rounded-2xl p-2 shadow-xl focus-within:ring-2 focus-within:ring-rose-500/50 transition">
+            <i class="fa-brands fa-tiktok text-slate-400 ml-3 mr-2"></i>
+            <input 
+              type="text" 
+              id="tiktokUrlInput"
+              placeholder="Tempel link TikTok (misal: https://vt.tiktok.com/ZSpD4MSJL/)" 
+              class="w-full bg-transparent border-0 text-white placeholder-slate-500 focus:outline-none px-2 py-2 text-sm"
+              value="https://vt.tiktok.com/ZSpD4MSJL/"
+              required
+            >
+            <button 
+              type="submit" 
+              id="btnAnalyze"
+              class="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-xs md:text-sm shadow-lg shadow-rose-950 flex-shrink-0"
+            >
+              <span id="btnAnalyzeText">Bedah dengan Gemini</span>
+              <i id="btnAnalyzeIcon" class="fa-solid fa-wand-magic-sparkles"></i>
+            </button>
+          </form>
+
+          <div id="analyzeStatus" class="hidden mt-4 text-xs text-rose-300 flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span id="analyzeStatusMsg">Mengunggah & memproses video...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analysis Results Container -->
+      <div id="analysisResultContainer" class="space-y-6">
+        
+        <!-- Hook & Summary Section -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- Hook Card -->
+          <div class="glass p-5 rounded-2xl border-l-4 border-rose-500 md:col-span-2">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-magnet"></i> Hook Analysis (3 Detik Pertama)
+              </span>
+              <span class="text-[11px] bg-rose-500/20 text-rose-300 px-2.5 py-0.5 rounded-full font-semibold" id="hookDuration">3 Detik</span>
+            </div>
+            <div class="space-y-2 text-xs">
+              <p><strong class="text-slate-300">👁️ Aksi Visual:</strong> <span id="hookVisual" class="text-slate-200"></span></p>
+              <p><strong class="text-slate-300">🎙️ Skrip Suara:</strong> <span id="hookAudio" class="text-rose-200 italic font-medium"></span></p>
+              <p><strong class="text-slate-300">🧠 Teknik Psikologi:</strong> <span id="hookPsychology" class="text-slate-400"></span></p>
+            </div>
+          </div>
+
+          <!-- Quick Action Card -->
+          <div class="glass p-5 rounded-2xl flex flex-col justify-between">
+            <div>
+              <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Aksi Cepat</h4>
+              <p class="text-[11px] text-slate-400">Potong video ini menjadi puzzle atau bawa skripnya ke ChatGPT/Claude.</p>
+            </div>
+            <div class="space-y-2 mt-4">
+              <button 
+                onclick="handleSliceCurrent()"
+                id="btnSliceCurrent"
+                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow"
+              >
+                <i class="fa-solid fa-scissors"></i>
+                <span>Potong Jadi Klip Puzzle</span>
+              </button>
+              <button 
+                onclick="copyScriptFormat()"
+                class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 transition"
+              >
+                <i class="fa-regular fa-copy"></i>
+                <span>Salin Skrip untuk AI Lain</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full Audio Transcript -->
+        <div class="glass p-5 rounded-2xl">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-microphone-lines text-purple-400"></i> Transkrip Suara Lengkap
+            </h4>
+            <button onclick="copyTranscript()" class="text-[11px] text-slate-400 hover:text-slate-200">
+              <i class="fa-regular fa-copy mr-1"></i>Salin
+            </button>
+          </div>
+          <div id="fullTranscript" class="text-xs text-slate-300 leading-relaxed bg-slate-900/60 p-4 rounded-xl border border-slate-800 max-h-36 overflow-y-auto custom-scrollbar"></div>
+        </div>
+
+        <!-- Scene Breakdown Table -->
+        <div class="glass p-5 rounded-2xl">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-film text-cyan-400"></i> Breakdown Visual & Skrip per Detik
+              </h4>
+              <p class="text-xs text-slate-400">Setiap baris adalah satu potongan puzzle potensial beserta instruksi modifikasi visual Omni.</p>
+            </div>
+            <span class="text-xs bg-slate-800 text-slate-300 px-3 py-1 rounded-lg border border-slate-700" id="sceneCountBadge">0 Scene</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 bg-slate-900/40">
+                  <th class="py-2.5 px-3">Scene & Waktu</th>
+                  <th class="py-2.5 px-3">Peran Iklan</th>
+                  <th class="py-2.5 px-3">Aksi Visual Asli</th>
+                  <th class="py-2.5 px-3">Skrip Suara Asli</th>
+                  <th class="py-2.5 px-3 text-rose-300">Prompt Edit Visual Omni</th>
+                </tr>
+              </thead>
+              <tbody id="scenesTableBody" class="divide-y divide-slate-800/60"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Winning Formulas -->
+        <div class="glass p-5 rounded-2xl">
+          <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-trophy"></i> Formula Pemenang Iklan Ini (Winning Elements)
+          </h4>
+          <ul id="winningFormulaList" class="space-y-2 text-xs text-slate-300"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: PUZZLE LIBRARY (KUMPULAN KLIP POTONGAN) -->
+    <!-- ========================================== -->
+    <section id="tab-puzzles" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl md:text-2xl font-bold text-white">Koleksi Kepingan Puzzle Klip</h2>
+          <p class="text-xs text-slate-400">Potongan-potongan video kompetitor yang siap disusun kembali atau dimodifikasi untuk iklan baru.</p>
+        </div>
+        <button 
+          onclick="loadPuzzles()" 
+          class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-xl transition flex items-center gap-1.5"
+        >
+          <i class="fa-solid fa-rotate-right"></i> Refresh
+        </button>
+      </div>
+
+      <!-- Puzzle Grid -->
+      <div id="puzzlesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+
+      <!-- Video Preview Modal -->
+      <div id="videoModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass max-w-lg w-full rounded-2xl p-4 relative border border-slate-700">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-bold text-slate-200 truncate" id="modalTitle">Preview Klip Puzzle</h4>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-white text-base">&times;</button>
+          </div>
+          <div class="aspect-[9/16] bg-black rounded-xl overflow-hidden max-h-[65vh] mx-auto flex items-center justify-center">
+            <video id="modalVideoPlayer" controls playsinline class="w-full h-full object-cover"></video>
+          </div>
+          <div class="mt-3 text-xs text-slate-300" id="modalDesc"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: STUDIO PERAKIT IKLAN (REMIXER & TEMPO SYNC) -->
+    <!-- ========================================== -->
+    <section id="tab-remix" class="hidden space-y-6">
+      
+      <div class="glass p-6 rounded-2xl">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+          <div>
+            <h2 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-rose-500"></i> Studio Perakit Iklan Baru
+            </h2>
+            <p class="text-xs text-slate-400">Susun potongan puzzle, ketik skrip voiceover baru, lalu sistem akan menyesuaikan tempo video secara presisi dengan kecepatan narasi suara AI.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              onclick="loadExampleScript()" 
+              class="text-xs bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/40 px-3 py-2 rounded-xl transition flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-wand-magic"></i> Isi Contoh Skrip Juara
+            </button>
+            <button 
+              type="button" 
+              onclick="addSceneRow()" 
+              class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-xl transition flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-plus"></i> Tambah Scene
+            </button>
+          </div>
+        </div>
+
+        <!-- Voice & Settings -->
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+          <div>
+            <label class="block text-slate-400 mb-1.5 font-medium">Pilihan Pengisi Suara (AI Voiceover)</label>
+            <select id="voiceSelect" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2 focus:ring-1 focus:ring-rose-500 focus:outline-none">
+              <option value="id-ID-ArdiNeural">👨 Ardi Neural (Pria - Meyakinkan, Ramah, Tegas)</option>
+              <option value="id-ID-GadisNeural">👩 Gadis Neural (Wanita - Positif, Enerjik, Segar)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1.5 font-medium">Mode Sinkronisasi Tempo</label>
+            <div class="w-full bg-slate-900/50 border border-slate-800 text-slate-300 rounded-xl px-3 py-2 flex items-center gap-2">
+              <i class="fa-solid fa-gauge-high text-emerald-400"></i>
+              <span>Dynamic Speed Ramp (Otomatis)</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1.5 font-medium">Format Output</label>
+            <div class="w-full bg-slate-900/50 border border-slate-800 text-slate-300 rounded-xl px-3 py-2 flex items-center gap-2">
+              <i class="fa-solid fa-mobile-screen-button text-rose-400"></i>
+              <span>1080x1920 (9:16 TikTok / Reels)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenes Builder Form -->
+        <div class="mt-6">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Daftar Scene Iklan Baru</h3>
+          <div id="scenesBuilderList" class="space-y-3"></div>
+        </div>
+
+        <!-- Render Button & Status -->
+        <div class="mt-6 pt-4 border-t border-slate-800 flex flex-col items-center">
+          <button 
+            type="button" 
+            id="btnRenderAd" 
+            onclick="handleAssembleAd()"
+            class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold py-3.5 px-8 rounded-2xl text-sm transition shadow-lg shadow-emerald-950 flex items-center gap-2"
+          >
+            <i id="btnRenderIcon" class="fa-solid fa-bolt"></i>
+            <span id="btnRenderText">RENDER IKLAN BARU (Voiceover + Tempo Sync)</span>
+          </button>
+
+          <div id="renderProgress" class="hidden mt-4 text-xs text-emerald-300 flex items-center space-x-2">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span id="renderStatusMsg">Menghasilkan Voiceover & melakukan speed-ramping...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Final Video Result Display -->
+      <div id="finalAdContainer" class="hidden glass p-6 rounded-2xl">
+        <div class="text-center mb-4">
+          <span class="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+            🎉 Video Iklan Siap Tayang!
+          </span>
+          <h3 class="text-xl font-bold text-white mt-2">Iklan Berhasil Dibuat & Disinkronkan</h3>
+          <p class="text-xs text-slate-400 mt-1" id="finalAdMeta"></p>
+        </div>
+
+        <div class="max-w-sm mx-auto aspect-[9/16] bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-800 relative">
+          <video id="finalVideoPlayer" controls playsinline class="w-full h-full object-cover"></video>
+        </div>
+
+        <div class="mt-4 flex justify-center gap-3">
+          <a 
+            id="downloadFinalAdBtn" 
+            href="#" 
+            download="iklan_baru_final.mp4"
+            class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold py-2.5 px-5 rounded-xl transition flex items-center gap-2 shadow"
+          >
+            <i class="fa-solid fa-download"></i> Unduh File MP4
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Script Logic -->
+  <script>
+    let currentAnalysisData = null;
+    let availablePuzzles = [];
+
+    // Switch tabs
+    function switchTab(tabId) {
+      ['tab-reverse', 'tab-puzzles', 'tab-remix'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(tabId).classList.remove('hidden');
+
+      // Update nav styling
+      const tabs = [
+        { id: 'tab-reverse', btn: 'nav-reverse' },
+        { id: 'tab-puzzles', btn: 'nav-puzzles' },
+        { id: 'tab-remix', btn: 'nav-remix' },
+      ];
+      tabs.forEach(t => {
+        const btn = document.getElementById(t.btn);
+        if (t.id === tabId) {
+          btn.className = "px-3.5 py-1.5 rounded-lg font-medium transition bg-rose-600 text-white shadow";
+        } else {
+          btn.className = "px-3.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200";
+        }
+      });
+
+      if (tabId === 'tab-puzzles') {
+        loadPuzzles();
+      }
+    }
+
+    // Load initial analysis if available
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('/api/get-current-analysis');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && data.data) {
+            renderAnalysis(data.data);
+          }
+        }
+      } catch (e) {}
+
+      loadPuzzles();
+    });
+
+    // Analyze with Gemini
+    async function handleAnalyze(e) {
+      e.preventDefault();
+      const url = document.getElementById('tiktokUrlInput').value.trim();
+      const btn = document.getElementById('btnAnalyze');
+      const btnText = document.getElementById('btnAnalyzeText');
+      const btnIcon = document.getElementById('btnAnalyzeIcon');
+      const statusDiv = document.getElementById('analyzeStatus');
+      const statusMsg = document.getElementById('analyzeStatusMsg');
+
+      if (!url) return;
+
+      btn.disabled = true;
+      btnText.innerText = "Membedah...";
+      btnIcon.className = "fa-solid fa-spinner fa-spin";
+      statusDiv.classList.remove('hidden');
+      statusMsg.innerText = "Mengambil video TikTok & mengirim ke Gemini 2.5...";
+
+      try {
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+        });
+        const result = await res.json();
+        if (!res.ok || !result.success) {
+          throw new Error(result.error || "Gagal menganalisis video");
+        }
+        renderAnalysis(result.data);
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btnText.innerText = "Bedah dengan Gemini";
+        btnIcon.className = "fa-solid fa-wand-magic-sparkles";
+        statusDiv.classList.add('hidden');
+      }
+    }
+
+    function renderAnalysis(data) {
+      currentAnalysisData = data;
+      document.getElementById('analysisResultContainer').classList.remove('hidden');
+
+      // Hook
+      if (data.hook) {
+        document.getElementById('hookDuration').innerText = (data.hook.durasi_detik || 3) + " Detik";
+        document.getElementById('hookVisual').innerText = data.hook.aksi_visual || "-";
+        document.getElementById('hookAudio').innerText = '"' + (data.hook.skrip_suara || "-") + '"';
+        document.getElementById('hookPsychology').innerText = data.hook.teknik_psikologi || "-";
+      }
+
+      // Transcript
+      document.getElementById('fullTranscript').innerText = data.transkrip_lengkap || "Tidak ada transkrip.";
+
+      // Table scenes
+      const tbody = document.getElementById('scenesTableBody');
+      tbody.innerHTML = '';
+      const scenes = data.breakdown_scene || [];
+      document.getElementById('sceneCountBadge').innerText = scenes.length + " Scene";
+
+      scenes.forEach(sc => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-900/50 transition";
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-semibold text-slate-200 whitespace-nowrap">
+            <span class="text-rose-400">#${sc.scene}</span> &bull; ${sc.detik_mulai}s - ${sc.detik_selesai}s
+          </td>
+          <td class="py-2.5 px-3">
+            <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] font-medium border border-slate-700">
+              ${sc.peran || 'Ad Scene'}
+            </span>
+          </td>
+          <td class="py-2.5 px-3 text-slate-300 max-w-[220px]">${sc.aksi_visual || '-'}</td>
+          <td class="py-2.5 px-3 text-slate-300 max-w-[220px] italic">"${sc.skrip_suara || '-'}"</td>
+          <td class="py-2.5 px-3 text-rose-300/90 font-mono text-[11px] max-w-[240px]">${sc.rekomendasi_edit_omni || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Formulas
+      const ul = document.getElementById('winningFormulaList');
+      ul.innerHTML = '';
+      (data.formula_winning_iklan || []).forEach(f => {
+        const li = document.createElement('li');
+        li.className = "flex items-start gap-2";
+        li.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mt-1"></i> <span>${f}</span>`;
+        ul.appendChild(li);
+      });
+    }
+
+    // Slicing handler
+    async function handleSliceCurrent() {
+      if (!currentAnalysisData || !currentAnalysisData.breakdown_scene) {
+        alert("Lakukan analisis video terlebih dahulu sebelum memotong.");
+        return;
+      }
+      const btn = document.getElementById('btnSliceCurrent');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Memotong Puzzle...</span>`;
+
+      try {
+        const res = await fetch('/api/slice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenes: currentAnalysisData.breakdown_scene })
+        });
+        const result = await res.json();
+        if (!res.ok || !result.success) {
+          throw new Error(result.error || "Gagal memotong video");
+        }
+        alert(`Berhasil memotong ${result.count} kepingan puzzle! Beralih ke Tab 2 (Puzzle Library)...`);
+        switchTab('tab-puzzles');
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-scissors"></i><span>Potong Jadi Klip Puzzle</span>`;
+      }
+    }
+
+    // Load Puzzles
+    async function loadPuzzles() {
+      try {
+        const res = await fetch('/api/puzzles');
+        const data = await res.json();
+        if (data.success && data.puzzles) {
+          availablePuzzles = data.puzzles;
+          document.getElementById('puzzleBadgeCount').innerText = availablePuzzles.length;
+          renderPuzzlesGrid(availablePuzzles);
+          updateSceneBuilderDropdowns();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderPuzzlesGrid(puzzles) {
+      const grid = document.getElementById('puzzlesGrid');
+      grid.innerHTML = '';
+
+      if (puzzles.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-12 glass rounded-2xl text-slate-500 text-xs">
+            <i class="fa-solid fa-puzzle-piece text-3xl mb-2 text-slate-600"></i>
+            <p>Belum ada potongan puzzle. Silakan klik "Potong Jadi Klip Puzzle" di Tab 1.</p>
+          </div>
+        `;
+        return;
+      }
+
+      puzzles.forEach(p => {
+        const card = document.createElement('div');
+        card.className = "glass rounded-xl overflow-hidden border border-slate-800 flex flex-col hover:border-slate-700 transition";
+        card.innerHTML = `
+          <div class="relative aspect-video bg-black cursor-pointer group" onclick="playModal('${p.clip_url}', '${p.filename}', '${encodeURIComponent(p.aksi_visual || '')}')">
+            <img src="${p.thumb_url || ''}" class="w-full h-full object-cover group-hover:opacity-80 transition" alt="Thumbnail">
+            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/40">
+              <div class="w-10 h-10 rounded-full bg-rose-600/90 text-white flex items-center justify-center text-sm shadow-lg">
+                <i class="fa-solid fa-play ml-0.5"></i>
+              </div>
+            </div>
+            <span class="absolute bottom-1.5 right-1.5 bg-black/80 text-[10px] font-semibold text-slate-200 px-1.5 py-0.5 rounded">
+              ${p.duration}s
+            </span>
+            <span class="absolute top-1.5 left-1.5 bg-rose-600/90 text-[10px] font-bold text-white px-1.5 py-0.5 rounded">
+              #${p.scene}
+            </span>
+          </div>
+          <div class="p-3 flex-1 flex flex-col justify-between text-xs space-y-2">
+            <div>
+              <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">${p.peran || 'Ad Clip'}</div>
+              <p class="text-slate-200 text-xs line-clamp-2">${p.aksi_visual || p.filename}</p>
+            </div>
+            <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+              <span class="text-[10px] text-slate-500">${p.start_second}s - ${p.end_second}s</span>
+              <button 
+                onclick="usePuzzleInStudio('${p.clip_path}')"
+                class="text-[11px] text-rose-400 hover:text-rose-300 font-medium"
+              >
+                + Pakai di Studio
+              </button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function playModal(url, title, descEncoded) {
+      const modal = document.getElementById('videoModal');
+      const player = document.getElementById('modalVideoPlayer');
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalDesc').innerText = decodeURIComponent(descEncoded);
+      player.src = url;
+      modal.classList.remove('hidden');
+      player.play();
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('videoModal');
+      const player = document.getElementById('modalVideoPlayer');
+      player.pause();
+      modal.classList.add('hidden');
+    }
+
+    // Tab 3: Studio Perakit Iklan
+    let sceneRows = [];
+
+    function addSceneRow(initialData = null) {
+      const id = Date.now() + Math.random().toString(36).substring(2, 5);
+      const row = initialData || {
+        id: id,
+        clip_path: availablePuzzles[sceneRows.length % availablePuzzles.length]?.clip_path || '',
+        script: ''
+      };
+      sceneRows.push(row);
+      renderSceneRows();
+    }
+
+    function removeSceneRow(index) {
+      sceneRows.splice(index, 1);
+      renderSceneRows();
+    }
+
+    function updateSceneBuilderDropdowns() {
+      if (sceneRows.length === 0 && availablePuzzles.length > 0) {
+        loadExampleScript();
+      } else {
+        renderSceneRows();
+      }
+    }
+
+    function renderSceneRows() {
+      const container = document.getElementById('scenesBuilderList');
+      container.innerHTML = '';
+
+      if (sceneRows.length === 0) {
+        container.innerHTML = `<div class="text-xs text-slate-500 p-4 text-center">Belum ada scene. Klik 'Tambah Scene' atau 'Isi Contoh Skrip'.</div>`;
+        return;
+      }
+
+      sceneRows.forEach((row, idx) => {
+        const div = document.createElement('div');
+        div.className = "glass p-4 rounded-xl border border-slate-800/80 flex flex-col md:flex-row gap-4 items-start md:items-center text-xs";
+
+        let optionsHtml = availablePuzzles.map(p => {
+          const selected = (p.clip_path === row.clip_path) ? 'selected' : '';
+          return `<option value="${p.clip_path}" ${selected}>Klip #${p.scene} (${p.duration}s): ${p.aksi_visual?.substring(0, 45) || p.filename}...</option>`;
+        }).join('');
+
+        div.innerHTML = `
+          <div class="flex items-center gap-2 font-bold text-rose-400 flex-shrink-0">
+            <span class="w-6 h-6 rounded-full bg-rose-500/20 flex items-center justify-center text-xs">
+              ${idx + 1}
+            </span>
+            <span>Scene ${idx + 1}</span>
+          </div>
+
+          <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Pilih Potongan Puzzle:</label>
+              <select onchange="updateSceneClip(${idx}, this.value)" class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg p-2 focus:outline-none">
+                <option value="">-- Pilih Klip Video --</option>
+                ${optionsHtml}
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Teks Voiceover AI Baru (Narasi Iklan):</label>
+              <input 
+                type="text" 
+                value="${row.script || ''}" 
+                placeholder="Contoh: Jangan biarkan motor kamu kusam dan berbulu!"
+                oninput="updateSceneScript(${idx}, this.value)" 
+                class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+              >
+            </div>
+          </div>
+
+          <button onclick="removeSceneRow(${idx})" class="text-slate-500 hover:text-rose-400 p-2">
+            <i class="fa-regular fa-trash-can"></i>
+          </button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateSceneClip(idx, val) {
+      if (sceneRows[idx]) sceneRows[idx].clip_path = val;
+    }
+
+    function updateSceneScript(idx, val) {
+      if (sceneRows[idx]) sceneRows[idx].script = val;
+    }
+
+    function usePuzzleInStudio(clipPath) {
+      addSceneRow({ clip_path: clipPath, script: '' });
+      switchTab('tab-remix');
+    }
+
+    function loadExampleScript() {
+      if (availablePuzzles.length === 0) {
+        alert("Potong video terlebih dahulu di Tab 1 agar kepingan puzzle tersedia.");
+        return;
+      }
+      sceneRows = [
+        {
+          clip_path: availablePuzzles[0]?.clip_path || '',
+          script: "Jangan buru-buru ganti body motor kamu yang sudah kusam dan berbulu putih!"
+        },
+        {
+          clip_path: availablePuzzles[2]?.clip_path || availablePuzzles[1]?.clip_path || '',
+          script: "Cukup poles sekali pakai ini, langsung hitam pekat seperti baru keluar dealer."
+        },
+        {
+          clip_path: availablePuzzles[7]?.clip_path || availablePuzzles[3]?.clip_path || '',
+          script: "Udah kita tes cuci berkali-kali pakai sabun dan air deras, hitamnya tetap awet dan tidak luntur!"
+        },
+        {
+          clip_path: availablePuzzles[11]?.clip_path || availablePuzzles[availablePuzzles.length - 1]?.clip_path || '',
+          script: "Harganya cuma 30 ribuan plus gratis spons aplikator. Klik keranjang kuning sekarang!"
+        }
+      ];
+      renderSceneRows();
+    }
+
+    // Assemble new ad
+    async function handleAssembleAd() {
+      if (sceneRows.length === 0) {
+        alert("Tambahkan minimal 1 scene untuk dirakit.");
+        return;
+      }
+
+      for (let i = 0; i < sceneRows.length; i++) {
+        if (!sceneRows[i].clip_path) {
+          alert(`Scene ${i + 1} belum memilih klip puzzle video.`);
+          return;
+        }
+      }
+
+      const voice = document.getElementById('voiceSelect').value;
+      const btn = document.getElementById('btnRenderAd');
+      const btnText = document.getElementById('btnRenderText');
+      const btnIcon = document.getElementById('btnRenderIcon');
+      const progressDiv = document.getElementById('renderProgress');
+      const finalContainer = document.getElementById('finalAdContainer');
+
+      btn.disabled = true;
+      btnText.innerText = "Merakit Video...";
+      btnIcon.className = "fa-solid fa-spinner fa-spin";
+      progressDiv.classList.remove('hidden');
+      finalContainer.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/assemble', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            voice: voice,
+            scenes: sceneRows
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || "Gagal merakit video");
+        }
+
+        // Show result
+        document.getElementById('finalAdMeta').innerText = `Durasi: ${data.duration} detik &bull; Ukuran: ${data.size_mb} MB &bull; ${data.total_scenes} Scene Sinkron`;
+        const player = document.getElementById('finalVideoPlayer');
+        player.src = data.video_url;
+        document.getElementById('downloadFinalAdBtn').href = data.video_url;
+        finalContainer.classList.remove('hidden');
+        finalContainer.scrollIntoView({ behavior: 'smooth' });
+        player.play();
+      } catch (err) {
+        alert("Gagal Merakit Iklan: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btnText.innerText = "RENDER IKLAN BARU (Voiceover + Tempo Sync)";
+        btnIcon.className = "fa-solid fa-bolt";
+        progressDiv.classList.add('hidden');
+      }
+    }
+
+    function copyTranscript() {
+      const text = document.getElementById('fullTranscript').innerText;
+      navigator.clipboard.writeText(text);
+      alert("Transkrip suara berhasil disalin!");
+    }
+
+    function copyScriptFormat() {
+      if (!currentAnalysisData) return;
+      const scenes = currentAnalysisData.breakdown_scene || [];
+      let text = "FORMULA IKLAN KOMPETITOR UNTUK DIBUATKAN SKRIP BARU:\\n\\n";
+      text += `HOOK ASLI: "${currentAnalysisData.hook?.skrip_suara}"\\n\\n`;
+      text += "BREAKDOWN SCENE:\\n";
+      scenes.forEach(s => {
+        text += `- Scene ${s.scene} (${s.detik_mulai}s-${s.detik_selesai}s) [${s.peran}]: Visual = "${s.aksi_visual}", Suara = "${s.skrip_suara}"\\n`;
+      });
+      text += "\\nTolong buatkan 3 alternatif skrip iklan baru dengan struktur Hook -> Problem -> Solution -> Social Proof -> CTA yang mereferensikan aksi visual tersebut.";
+      navigator.clipboard.writeText(text);
+      alert("Format skrip berhasil disalin ke clipboard! Silakan paste ke AI lain (ChatGPT/Claude/Gemini).");
+    }
+  </script>
+</body>
+</html>
+

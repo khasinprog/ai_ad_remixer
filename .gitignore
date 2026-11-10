@@ -1,0 +1,21 @@
+# Environment Variables (Penting: Jangan upload API key ke GitHub!)
+.env
+
+# Raw Video files (Hindari bloatware & batas 50MB GitHub)
+*.mp4
+puzzles/*.mp4
+downloads/*.mp4
+
+# Python Virtual Environments & Caches
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Temporary assembling folders
+ad_assemble_*

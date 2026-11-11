@@ -409,7 +409,14 @@
               Tuliskan nama scene, visual yang diinginkan, dan skrip suara baru Anda. Gemini akan mencocokkan kepingan puzzle TikTok yang paling sesuai dan membuatkan prompt edit kamera Omni.
             </p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <button 
+              type="button" 
+              onclick="openPasteAIModal()" 
+              class="text-xs bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow"
+            >
+              <i class="fa-solid fa-paste"></i> Tempel Hasil ChatGPT / Claude
+            </button>
             <button 
               type="button" 
               onclick="loadImprovementTemplate()" 
@@ -1653,7 +1660,157 @@
         status.innerHTML = `<i class="fa-solid fa-circle-check"></i> Sudah disalin otomatis ke Clipboard!`;
       }, 2000);
     }
+
+    function openPasteAIModal() {
+      document.getElementById('pasteAIModal').classList.remove('hidden');
+      document.getElementById('pasteAIModalText').focus();
+    }
+
+    function closePasteAIModal() {
+      document.getElementById('pasteAIModal').classList.add('hidden');
+    }
+
+    function applyPastedAIScript() {
+      const rawText = document.getElementById('pasteAIModalText').value.trim();
+      if (!rawText) {
+        alert("Tempelkan teks skrip dari AI terlebih dahulu.");
+        return;
+      }
+
+      const parsed = parseAIScriptText(rawText);
+      if (parsed.length === 0) {
+        alert("Tidak dapat mendeteksi scene secara otomatis. Pastikan ada kata 'Hook' atau 'Scene 1', 'Visual:', dan 'Audio:'.");
+        return;
+      }
+
+      conceptScenes = parsed;
+      renderConceptScenes();
+      closePasteAIModal();
+      document.getElementById('pasteAIModalText').value = '';
+      alert(`Berhasil memasukkan ${parsed.length} scene ke Studio! Silakan periksa kembali atau langsung klik tombol '🧠 AI Auto-Match Puzzle'.`);
+    }
+
+    function parseAIScriptText(rawText) {
+      // 1. Try JSON if AI returned JSON
+      try {
+        const jsonMatch = rawText.match(/\[\s*\{[\s\S]*\}\s*\]/);
+        if (jsonMatch) {
+          const arr = JSON.parse(jsonMatch[0]);
+          if (Array.isArray(arr) && arr.length > 0) {
+            return arr.map((item, idx) => ({
+              id: Date.now() + idx + Math.random(),
+              scene_name: item.scene_name || item.scene || item.name || `Scene ${idx + 1}`,
+              visual_intent: item.visual_intent || item.visual || item.visual_action || item.aksi || '',
+              voice_script: item.voice_script || item.script || item.audio || item.voiceover || item.suara || ''
+            }));
+          }
+        }
+      } catch (e) {}
+
+      // 2. Intelligent Block / Line parser
+      const lines = rawText.split('\n');
+      const scenes = [];
+      let current = null;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        // Detect scene header (e.g. "Hook", "Scene 1", "1. Hook", "Scene 2 (Problem)", ":hook:", etc.)
+        const isHeader = /^(?:#+\s*)?(?:[:\*]*)(hook|scene\s*\d+|ad\s*\d+|\d+\.\s*[a-zA-Z]+)(?:[:\*]*)(.*)$/i.test(line) &&
+                         !line.toLowerCase().startsWith('visual:') && 
+                         !line.toLowerCase().startsWith('audio:') &&
+                         !line.toLowerCase().startsWith('suara:') &&
+                         !line.toLowerCase().startsWith('skrip:');
+
+        if (isHeader) {
+          if (current && (current.visual_intent || current.voice_script)) {
+            scenes.push(current);
+          }
+          const cleanTitle = line.replace(/^[\*#:\s-]+|[\*#:\s-]+$/g, '').trim();
+          current = {
+            id: Date.now() + scenes.length + Math.random(),
+            scene_name: cleanTitle,
+            visual_intent: '',
+            voice_script: ''
+          };
+          continue;
+        }
+
+        if (!current) {
+          current = {
+            id: Date.now() + Math.random(),
+            scene_name: 'Hook / Scene 1',
+            visual_intent: '',
+            voice_script: ''
+          };
+        }
+
+        // Visual intent line
+        const visMatch = line.match(/^(?:visual|aksi visual|aksi|visual intent|video|puzzling)\s*:\s*(.*)$/i);
+        if (visMatch) {
+          current.visual_intent = (current.visual_intent ? current.visual_intent + ' ' : '') + visMatch[1].trim();
+          continue;
+        }
+
+        // Voice script line
+        const audMatch = line.match(/^(?:audio|suara|skrip suara|skrip|voiceover|voice|narasi|kata)\s*:\s*(.*)$/i);
+        if (audMatch) {
+          current.voice_script = (current.voice_script ? current.voice_script + ' ' : '') + audMatch[1].replace(/^["']|["']$/g, '').trim();
+          continue;
+        }
+
+        // Continuation
+        if (current.voice_script && !current.visual_intent) {
+          current.voice_script += ' ' + line.replace(/^["']|["']$/g, '');
+        } else if (current.visual_intent) {
+          current.visual_intent += ' ' + line;
+        }
+      }
+
+      if (current && (current.visual_intent || current.voice_script)) {
+        scenes.push(current);
+      }
+
+      return scenes;
+    }
   </script>
+
+  <!-- Modal Fast Paste Hasil AI (ChatGPT / Claude / Gemini) -->
+  <div id="pasteAIModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass max-w-2xl w-full rounded-2xl p-5 relative border border-slate-700 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow text-base">
+            <i class="fa-solid fa-paste"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-white">Tempel Hasil Skrip dari AI (ChatGPT / Claude / Gemini)</h4>
+            <p class="text-[11px] text-slate-400">Tempelkan seluruh teks jawaban dari ChatGPT/Claude, sistem akan otomatis memecahnya menjadi scene.</p>
+          </div>
+        </div>
+        <button onclick="closePasteAIModal()" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+
+      <div class="my-3 flex-1 overflow-y-auto">
+        <textarea 
+          id="pasteAIModalText" 
+          rows="12" 
+          placeholder="Tempelkan hasil copy dari ChatGPT / Claude di sini...&#10;&#10;Contoh format yang didukung:&#10;Hook (0-3 detik)&#10;Visual: Gunakan puzzling1 aksi mencoret atap mobil&#10;Audio: Jangan buru-buru ganti plafon mobil kamu yang kusam!&#10;&#10;Scene 2 (Problem)&#10;Visual: Gunakan puzzling2&#10;Audio: Kalau disikat kasar, kain bludrunya bisa rontok..."
+          class="w-full bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-purple-500 custom-scrollbar"
+        ></textarea>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+        <button onclick="closePasteAIModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-4 py-2 rounded-xl text-xs transition">
+          Batal
+        </button>
+        <button onclick="applyPastedAIScript()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-lg shadow-purple-950">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Ekstrak & Terapkan ke Scene Studio
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal Brief AI (ChatGPT / Claude / Gemini) -->
   <div id="briefModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">

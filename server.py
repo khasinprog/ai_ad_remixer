@@ -280,6 +280,10 @@ class AdStudioHandler(BaseHTTPRequestHandler):
         if path == "/api/analyze":
             url = payload.get("url", "").strip()
             video_path = payload.get("video_path", "").strip()
+            product_relation = payload.get("product_relation", "different").strip()
+            my_product_name = payload.get("my_product_name", "Dohero Black").strip()
+            my_packaging_desc = payload.get("my_packaging_desc", "Botol spray hitam matte 100ml").strip()
+            my_talent_desc = payload.get("my_talent_desc", "Pria Indonesia usia 25 tahun kasual ramah").strip()
 
             if not url and not video_path:
                 self.send_json(400, {"success": False, "error": "URL TikTok atau file video tidak boleh kosong"})
@@ -297,7 +301,13 @@ class AdStudioHandler(BaseHTTPRequestHandler):
                     if not os.path.exists(target_video_path):
                         download_stream(video_url, target_video_path)
 
-                analysis = analyze_video(target_video_path)
+                analysis = analyze_video(
+                    target_video_path,
+                    product_relation=product_relation,
+                    my_product_name=my_product_name,
+                    my_packaging_desc=my_packaging_desc,
+                    my_talent_desc=my_talent_desc
+                )
 
                 with open(ANALYSIS_FILE, "w") as f:
                     json.dump(analysis, f, indent=2)

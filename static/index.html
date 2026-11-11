@@ -101,6 +101,43 @@
             </button>
           </div>
 
+          <!-- Product Relation & Custom Brand Settings -->
+          <div class="mb-5 p-4 rounded-xl glass border border-slate-800 text-left space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-tags text-rose-400"></i> Status Produk Video Sumber:
+              </span>
+              <div class="inline-flex rounded-lg bg-slate-900 p-0.5 border border-slate-700 text-xs self-start sm:self-auto">
+                <label id="labelProdSame" class="cursor-pointer px-3 py-1 rounded-md transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
+                  <input type="radio" name="productRelation" value="same" class="hidden" onchange="toggleProductRelation('same')">
+                  <i class="fa-solid fa-check text-emerald-400"></i>
+                  <span>Produk Sama (Brand Sendiri)</span>
+                </label>
+                <label id="labelProdDiff" class="cursor-pointer px-3 py-1 rounded-md transition flex items-center gap-1.5 bg-rose-600 text-white shadow font-semibold">
+                  <input type="radio" name="productRelation" value="different" checked class="hidden" onchange="toggleProductRelation('different')">
+                  <i class="fa-solid fa-repeat text-amber-300"></i>
+                  <span>Produk Beda (Kompetitor Lain)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Custom Brand Fields when "Produk Beda" is active -->
+            <div id="diffProductOptions" class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-slate-800/80 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1 font-medium">Nama Produk Anda:</label>
+                <input type="text" id="myProductName" placeholder="Contoh: Dohero Black" value="Dohero Black" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-rose-500 text-xs">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1 font-medium">Bentuk Botol/Kemasan Baru Anda:</label>
+                <input type="text" id="myPackagingDesc" placeholder="Contoh: Botol spray hitam matte 100ml tutup kuning" value="Botol spray hitam matte 100ml dengan tutup kuning" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-rose-500 text-xs">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1 font-medium">Karakter Talent/Wajah Pengganti:</label>
+                <input type="text" id="myTalentDesc" placeholder="Contoh: Pria Indonesia 25 th kasual ramah" value="Pria Indonesia usia 25 tahun, gaya kasual antusias" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-rose-500 text-xs">
+              </div>
+            </div>
+          </div>
+
           <!-- Mode 1: TikTok Single URL Form -->
           <form id="formTiktok" onsubmit="handleAnalyze(event)" class="relative flex items-center glass rounded-2xl p-2 shadow-xl focus-within:ring-2 focus-within:ring-rose-500/50 transition">
             <i class="fa-brands fa-tiktok text-slate-400 ml-3 mr-2"></i>
@@ -278,9 +315,10 @@
               <thead>
                 <tr class="border-b border-slate-800 text-slate-400 bg-slate-900/40">
                   <th class="py-2.5 px-3">Scene & Waktu</th>
-                  <th class="py-2.5 px-3">Peran Iklan</th>
+                  <th class="py-2.5 px-3">Tipe & Deteksi</th>
                   <th class="py-2.5 px-3">Aksi Visual Asli</th>
                   <th class="py-2.5 px-3">Skrip Suara Asli</th>
+                  <th class="py-2.5 px-3 text-rose-300">Aksi & Prompt Omni AI</th>
                 </tr>
               </thead>
               <tbody id="scenesTableBody" class="divide-y divide-slate-800/60"></tbody>
@@ -313,6 +351,15 @@
         >
           <i class="fa-solid fa-rotate-right"></i> Refresh
         </button>
+      </div>
+
+      <!-- Puzzle Filter Buttons -->
+      <div class="flex flex-wrap items-center gap-2 text-xs bg-slate-900/60 p-2.5 rounded-xl border border-slate-800/80">
+        <span class="text-slate-400 font-semibold mr-1 flex items-center gap-1"><i class="fa-solid fa-filter text-rose-400"></i> Filter Klip:</span>
+        <button onclick="filterPuzzles('all')" id="btnFilterAll" class="px-3 py-1 rounded-lg bg-rose-600 text-white font-semibold shadow transition">Semua (<span id="countAllPuzzles">0</span>)</button>
+        <button onclick="filterPuzzles('universal')" id="btnFilterUniversal" class="px-3 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-750 text-emerald-300 border border-emerald-500/30 transition flex items-center gap-1">🟢 Universal B-Roll (Siap Pakai)</button>
+        <button onclick="filterPuzzles('product')" id="btnFilterProduct" class="px-3 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-750 text-amber-300 border border-amber-500/30 transition flex items-center gap-1">📦 Ada Botol (Perlu Swap)</button>
+        <button onclick="filterPuzzles('talent')" id="btnFilterTalent" class="px-3 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-750 text-purple-300 border border-purple-500/30 transition flex items-center gap-1">👤 Ada Wajah (Perlu Swap)</button>
       </div>
 
       <!-- Puzzle Grid -->
@@ -669,10 +716,21 @@
         currentVideoPath = uploadData.video_path;
         statusMsg.innerText = "Video terunggah! Gemini sedang menganalisis video (frame, audio, hook)...";
 
+        const productRelation = document.querySelector('input[name="productRelation"]:checked')?.value || 'different';
+        const myProductName = document.getElementById('myProductName')?.value.trim() || 'Dohero Black';
+        const myPackagingDesc = document.getElementById('myPackagingDesc')?.value.trim() || 'Botol spray hitam matte 100ml';
+        const myTalentDesc = document.getElementById('myTalentDesc')?.value.trim() || 'Pria Indonesia usia 25 th kasual antusias';
+
         const analyzeRes = await fetch('/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ video_path: currentVideoPath })
+          body: JSON.stringify({ 
+            video_path: currentVideoPath,
+            product_relation: productRelation,
+            my_product_name: myProductName,
+            my_packaging_desc: myPackagingDesc,
+            my_talent_desc: myTalentDesc
+          })
         });
         const analyzeData = await analyzeRes.json();
         if (!analyzeRes.ok || !analyzeData.success) {
@@ -703,10 +761,21 @@
 
       try {
         currentVideoPath = selectedPath;
+        const productRelation = document.querySelector('input[name="productRelation"]:checked')?.value || 'different';
+        const myProductName = document.getElementById('myProductName')?.value.trim() || 'Dohero Black';
+        const myPackagingDesc = document.getElementById('myPackagingDesc')?.value.trim() || 'Botol spray hitam matte 100ml';
+        const myTalentDesc = document.getElementById('myTalentDesc')?.value.trim() || 'Pria Indonesia usia 25 th kasual antusias';
+
         const res = await fetch('/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ video_path: selectedPath })
+          body: JSON.stringify({ 
+            video_path: selectedPath,
+            product_relation: productRelation,
+            my_product_name: myProductName,
+            my_packaging_desc: myPackagingDesc,
+            my_talent_desc: myTalentDesc
+          })
         });
         const data = await res.json();
         if (!res.ok || !data.success) {
@@ -718,6 +787,57 @@
       } finally {
         statusDiv.classList.add('hidden');
       }
+    }
+
+    function toggleProductRelation(val) {
+      const isDiff = (val === 'different');
+      const labelSame = document.getElementById('labelProdSame');
+      const labelDiff = document.getElementById('labelProdDiff');
+      const diffOptions = document.getElementById('diffProductOptions');
+
+      if (isDiff) {
+        labelDiff.className = "cursor-pointer px-3 py-1 rounded-md transition flex items-center gap-1.5 bg-rose-600 text-white shadow font-semibold";
+        labelSame.className = "cursor-pointer px-3 py-1 rounded-md transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200";
+        if (diffOptions) diffOptions.classList.remove('hidden');
+      } else {
+        labelSame.className = "cursor-pointer px-3 py-1 rounded-md transition flex items-center gap-1.5 bg-emerald-600 text-white shadow font-semibold";
+        labelDiff.className = "cursor-pointer px-3 py-1 rounded-md transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200";
+        if (diffOptions) diffOptions.classList.add('hidden');
+      }
+    }
+
+    let activePuzzleFilter = 'all';
+
+    function filterPuzzles(filterType) {
+      activePuzzleFilter = filterType;
+      ['btnFilterAll', 'btnFilterUniversal', 'btnFilterProduct', 'btnFilterTalent'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.className = "px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition";
+      });
+
+      if (filterType === 'all') {
+        document.getElementById('btnFilterAll').className = "px-3 py-1 rounded-lg bg-rose-600 text-white font-semibold shadow transition";
+      } else if (filterType === 'universal') {
+        document.getElementById('btnFilterUniversal').className = "px-3 py-1 rounded-lg bg-emerald-600 text-white font-semibold shadow transition";
+      } else if (filterType === 'product') {
+        document.getElementById('btnFilterProduct').className = "px-3 py-1 rounded-lg bg-amber-600 text-white font-semibold shadow transition";
+      } else if (filterType === 'talent') {
+        document.getElementById('btnFilterTalent').className = "px-3 py-1 rounded-lg bg-purple-600 text-white font-semibold shadow transition";
+      }
+
+      applyPuzzleFilter();
+    }
+
+    function applyPuzzleFilter() {
+      let filtered = availablePuzzles;
+      if (activePuzzleFilter === 'universal') {
+        filtered = availablePuzzles.filter(p => p.kategori_visual === 'Universal Demo' || (!p.ada_produk && !p.ada_wajah));
+      } else if (activePuzzleFilter === 'product') {
+        filtered = availablePuzzles.filter(p => p.ada_produk);
+      } else if (activePuzzleFilter === 'talent') {
+        filtered = availablePuzzles.filter(p => p.ada_wajah);
+      }
+      renderPuzzlesGrid(filtered);
     }
 
     // Load initial analysis if available
@@ -749,17 +869,28 @@
 
       if (!url) return;
 
+      const productRelation = document.querySelector('input[name="productRelation"]:checked')?.value || 'different';
+      const myProductName = document.getElementById('myProductName')?.value.trim() || 'Dohero Black';
+      const myPackagingDesc = document.getElementById('myPackagingDesc')?.value.trim() || 'Botol spray hitam matte 100ml';
+      const myTalentDesc = document.getElementById('myTalentDesc')?.value.trim() || 'Pria Indonesia usia 25 th kasual antusias';
+
       btn.disabled = true;
       btnText.innerText = "Membedah...";
       btnIcon.className = "fa-solid fa-spinner fa-spin";
       statusDiv.classList.remove('hidden');
-      statusMsg.innerText = "Mengambil video TikTok & mengirim ke Gemini 2.5...";
+      statusMsg.innerText = "Mengambil video TikTok & mendeteksi elemen dengan Gemini...";
 
       try {
         const res = await fetch('/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: url })
+          body: JSON.stringify({ 
+            url: url,
+            product_relation: productRelation,
+            my_product_name: myProductName,
+            my_packaging_desc: myPackagingDesc,
+            my_talent_desc: myTalentDesc
+          })
         });
         const result = await res.json();
         if (!res.ok || !result.success) {
@@ -776,6 +907,12 @@
         btnIcon.className = "fa-solid fa-wand-magic-sparkles";
         statusDiv.classList.add('hidden');
       }
+    }
+
+    function copyPromptText(encText) {
+      const text = decodeURIComponent(encText);
+      navigator.clipboard.writeText(text);
+      alert("Prompt Edit Omni berhasil disalin ke clipboard!");
     }
 
     function renderAnalysis(data) {
@@ -802,17 +939,38 @@
       scenes.forEach(sc => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-900/50 transition";
+
+        // Badges for detection
+        let badgesHtml = `<span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] font-medium border border-slate-700">${sc.peran || 'Ad Scene'}</span>`;
+        if (sc.kategori_visual === 'Universal Demo' || (!sc.ada_produk && !sc.ada_wajah)) {
+          badgesHtml += `<div class="mt-1"><span class="bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded text-[10px] border border-emerald-500/30 font-semibold"><i class="fa-solid fa-check-circle mr-0.5"></i>Universal B-Roll</span></div>`;
+        } else {
+          badgesHtml += `<div class="flex flex-wrap gap-1 mt-1">`;
+          if (sc.ada_produk) badgesHtml += `<span class="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded text-[9px] border border-amber-500/30"><i class="fa-solid fa-box mr-0.5"></i>Ada Botol</span>`;
+          if (sc.ada_wajah) badgesHtml += `<span class="bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded text-[9px] border border-purple-500/30"><i class="fa-solid fa-user mr-0.5"></i>Ada Wajah</span>`;
+          badgesHtml += `</div>`;
+        }
+
+        const omniActionText = sc.omni_action || (sc.ada_produk ? 'Ganti Botol (Product Swap)' : (sc.ada_wajah ? 'Ganti Wajah (Face Swap)' : 'Aman Dipakai Langsung'));
+        const omniPrompt = sc.rekomendasi_edit_omni || '-';
+        const safePromptEnc = encodeURIComponent(omniPrompt);
+
         tr.innerHTML = `
           <td class="py-2.5 px-3 font-semibold text-slate-200 whitespace-nowrap">
             <span class="text-rose-400">#${sc.scene}</span> &bull; ${sc.detik_mulai}s - ${sc.detik_selesai}s
           </td>
           <td class="py-2.5 px-3">
-            <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] font-medium border border-slate-700">
-              ${sc.peran || 'Ad Scene'}
-            </span>
+            ${badgesHtml}
           </td>
-          <td class="py-2.5 px-3 text-slate-300 max-w-[280px]">${sc.aksi_visual || '-'}</td>
-          <td class="py-2.5 px-3 text-slate-300 max-w-[280px] italic">"${sc.skrip_suara || '-'}"</td>
+          <td class="py-2.5 px-3 text-slate-300 max-w-[240px]">${sc.aksi_visual || '-'}</td>
+          <td class="py-2.5 px-3 text-slate-300 max-w-[240px] italic">"${sc.skrip_suara || '-'}"</td>
+          <td class="py-2.5 px-3 max-w-[260px]">
+            <div class="flex items-center justify-between text-[10px] font-bold text-rose-300 mb-0.5">
+              <span>${omniActionText}</span>
+              ${omniPrompt !== '-' ? `<button type="button" onclick="copyPromptText('${safePromptEnc}')" class="text-slate-400 hover:text-white bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-[10px] transition"><i class="fa-regular fa-copy"></i> Salin</button>` : ''}
+            </div>
+            <div class="text-[11px] text-slate-400 font-mono line-clamp-2 hover:line-clamp-none transition cursor-pointer" title="${omniPrompt}">${omniPrompt}</div>
+          </td>
         `;
         tbody.appendChild(tr);
       });
@@ -885,7 +1043,7 @@
         grid.innerHTML = `
           <div class="col-span-full text-center py-12 glass rounded-2xl text-slate-500 text-xs">
             <i class="fa-solid fa-puzzle-piece text-3xl mb-2 text-slate-600"></i>
-            <p>Belum ada potongan puzzle. Silakan klik "Potong Jadi Klip Puzzle" di Tab 1.</p>
+            <p>Tidak ada potongan puzzle yang sesuai dengan filter.</p>
           </div>
         `;
         return;
@@ -894,6 +1052,18 @@
       puzzles.forEach(p => {
         const card = document.createElement('div');
         card.className = "glass rounded-xl overflow-hidden border border-slate-800 flex flex-col hover:border-slate-700 transition";
+        
+        let badgesHtml = '';
+        if (p.kategori_visual === 'Universal Demo' || (!p.ada_produk && !p.ada_wajah)) {
+          badgesHtml += `<span class="bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded text-[9px] border border-emerald-500/30 font-semibold"><i class="fa-solid fa-check-circle mr-0.5"></i>Universal B-Roll</span>`;
+        } else {
+          if (p.ada_produk) badgesHtml += `<span class="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded text-[9px] border border-amber-500/30"><i class="fa-solid fa-box mr-0.5"></i>Ada Botol</span>`;
+          if (p.ada_wajah) badgesHtml += `<span class="bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded text-[9px] border border-purple-500/30"><i class="fa-solid fa-user mr-0.5"></i>Ada Wajah</span>`;
+        }
+
+        const omniPrompt = p.rekomendasi_edit_omni || '';
+        const safePromptEnc = encodeURIComponent(omniPrompt);
+
         card.innerHTML = `
           <div class="relative aspect-video bg-black cursor-pointer group" onclick="playModal('${p.clip_url}', '${p.filename}', '${encodeURIComponent(p.aksi_visual || '')}')">
             <img src="${p.thumb_url || ''}" class="w-full h-full object-cover group-hover:opacity-80 transition" alt="Thumbnail">
@@ -911,14 +1081,21 @@
           </div>
           <div class="p-3 flex-1 flex flex-col justify-between text-xs space-y-2">
             <div>
-              <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">${p.peran || 'Ad Clip'}</div>
-              <p class="text-slate-200 text-xs line-clamp-2">${p.aksi_visual || p.filename}</p>
+              <div class="flex items-center justify-between gap-1 mb-1.5">
+                <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">${p.peran || 'Ad Clip'}</span>
+                <span class="text-[9px] text-slate-500">${p.start_second}s - ${p.end_second}s</span>
+              </div>
+              <div class="flex flex-wrap gap-1 mb-1.5">
+                ${badgesHtml}
+              </div>
+              <p class="text-slate-200 text-xs line-clamp-2" title="${p.aksi_visual || p.filename}">${p.aksi_visual || p.filename}</p>
+              ${p.omni_action ? `<div class="mt-1 text-[10px] text-rose-300 font-medium"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>${p.omni_action}</div>` : ''}
             </div>
-            <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between">
-              <span class="text-[10px] text-slate-500">${p.start_second}s - ${p.end_second}s</span>
+            <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1">
+              ${omniPrompt ? `<button type="button" onclick="copyPromptText('${safePromptEnc}')" class="text-[10px] text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700 transition"><i class="fa-regular fa-copy mr-1"></i>Prompt Omni</button>` : '<span></span>'}
               <button 
                 onclick="usePuzzleInStudio('${p.clip_path}')"
-                class="text-[11px] text-rose-400 hover:text-rose-300 font-medium"
+                class="text-[11px] text-rose-400 hover:text-rose-300 font-semibold transition whitespace-nowrap"
               >
                 + Pakai di Studio
               </button>

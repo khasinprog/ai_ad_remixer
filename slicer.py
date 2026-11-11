@@ -75,6 +75,11 @@ def slice_video_to_puzzles(video_path: str, scenes: List[Dict[str, Any]], output
             "peran": item.get("peran", ""),
             "aksi_visual": item.get("aksi_visual", ""),
             "skrip_suara": item.get("skrip_suara", ""),
+            "ada_produk": item.get("ada_produk", False),
+            "ada_wajah": item.get("ada_wajah", False),
+            "kategori_visual": item.get("kategori_visual", "Universal Demo"),
+            "omni_action": item.get("omni_action", "Bisa Dipakai Langsung"),
+            "product_relation": item.get("product_relation", "same"),
             "rekomendasi_edit_omni": item.get("rekomendasi_edit_omni", ""),
         })
 

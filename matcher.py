@@ -47,10 +47,10 @@ Tugas Anda:
 1. Membaca rancangan scene improvement yang dibuat pengguna (Persona, Angle, Offer, dan Skrip Suara).
 2. Memindai daftar kepingan klip puzzle video mentah (Puzzle Library) yang tersedia.
 3. Mencocokkan SATU kepingan puzzle yang paling relevan untuk setiap scene pengguna.
-4. Membuatkan PROMPT EDIT KAMERA OMNI (AI Video Gen) untuk setiap scene, difokuskan pada:
-   - Mengubah angle kamera agar lebih eye-catching & dramatis (misal: Dutch angle, low-angle hero shot, macro close-up, fast zoom-in).
-   - Memperkuat elemen visual utama produk/masalah.
-   - Instruksi pencahayaan sinematik dan gerakan kamera yang dinamis.
+4. Membuatkan PROMPT EDIT KAMERA & VISUAL OMNI (AI Video Gen) untuk setiap scene, dengan aturan:
+   - JIKA KLIP PUZZLE MEMILIKI WAJAH (ada_wajah = True): WAJIB sertakan instruksi Face Swap / ganti talent ('Face swap talent with a friendly 25yo Indonesian casual man/woman speaking expressively to camera').
+   - JIKA KLIP PUZZLE MEMILIKI PRODUK (ada_produk = True): WAJIB sertakan instruksi Product Inpainting / swap produk ('Inpaint/replace product bottle with our brand matte spray bottle held naturally').
+   - UBAH ANGLE KAMERA: Buat angle kamera lebih dinamis & eye-catching (misal: dynamic medium close-up, dramatic low-angle, extreme macro on action, dynamic push-in, cinematic studio lighting, 4k photorealistic).
 """
 
 
@@ -102,7 +102,7 @@ Daftar Scene & Skrip Improvement yang Diinginkan Pengguna:
 Instruksi:
 - Untuk setiap scene dari pengguna, pilih 'selected_puzzle_filename' yang HANYA berasal dari daftar Puzzle Library di atas.
 - Tuliskan 'match_reason' yang menjelaskan mengapa aksi visual klip tersebut cocok dengan skrip pengguna.
-- Tuliskan 'omni_camera_prompt' dalam bahasa Inggris yang kaya visual dan spesifik (camera angle, movement, focal length, aesthetic, dynamic visual hooks).
+- Tuliskan 'omni_camera_prompt' dalam bahasa Inggris yang kaya visual dan spesifik. WAJIB sertakan instruksi Face Swap jika klip memiliki wajah/talent ('ada_wajah': true), sertakan Product Swap jika klip memiliki produk ('ada_produk': true), dan ubah angle kamera menjadi lebih dinamis & eye-catching.
 """
 
     models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]

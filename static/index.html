@@ -1678,6 +1678,14 @@
         text += "(Video referensi belum dianalisis di Tab 1, atau gunakan formula Anda sendiri)\n\n";
       }
 
+      const myProdName = document.getElementById('myProductName')?.value.trim() || 'Dohero Black';
+      const myPackDesc = document.getElementById('myPackagingDesc')?.value.trim() || 'Botol spray hitam matte 100ml';
+
+      text += "--- IDENTITAS PRODUK KITA & TALENT PENGGANTI (UNTUK SWAP) ---\n";
+      text += `Nama Produk Kita: ${myProdName}\n`;
+      text += `Bentuk Kemasan: ${myPackDesc}\n`;
+      text += "Profil Talent Pengganti: Pria/Wanita Indonesia usia 25-30 tahun, gaya kasual rapi, ramah, antusias berbicara ke kamera.\n\n";
+
       text += "--- STOK KEPINGAN VISUAL YANG TERSEDIA (PUZZLING INVENTORY) ---\n";
       if (!availablePuzzles || availablePuzzles.length === 0) {
         text += "(Perpustakaan puzzle masih kosong. Masukkan link video TikTok di Tab 1 atau 2 lalu klik 'Potong Jadi Klip Puzzle').\n";
@@ -1702,9 +1710,14 @@
       text += "Bertindaklah sebagai Creative Director & Scriptwriter iklan Winning Ads (Direct Response Video):\n";
       text += "1. Buat skrip iklan baru dengan hook tajam, alur persuasi (Hook -> Problem -> Solusi -> Demo Before-After -> Penawaran & CTA).\n";
       text += "2. Setiap scene HARUS memilih visual dari 'puzzling inventory' di atas (tuliskan kode 'puzzling1', 'puzzling2', dst).\n";
-      text += "3. TULISKAN PROMPT EDIT VIDEO / PROMPT KAMERA (dalam bahasa Inggris sinematik untuk AI Video Gen seperti Kling / Luma / Runway / Gemini Omni):\n";
-      text += "   - Rancang angle kamera baru yang eye-catching (misal: extreme close-up, dynamic camera roll/tilt, slow-motion splash, cinematic macro shot, dramatic studio lighting).\n";
-      text += "   - Prompt ini digunakan untuk mere-generate angle video agar tampilan iklan baru lebih segar dan memikat penonton.\n\n";
+      text += "3. ATURAN WAJIB MEMBUAT 'Prompt Video:' (Prompt AI Video Gen / Gemini Omni / Kling / Luma / Runway):\n";
+      text += "   Tuliskan prompt kamera dalam bahasa Inggris sinematik dengan aturan:\n";
+      text += "   a. JIKA PUZZLE ADA STATUS '(orang harus diganti)':\n";
+      text += "      WAJIB masukkan instruksi Face Swap / Ganti Talent: 'face swap talent with a friendly 25yo Indonesian man, speaking expressively and naturally to camera'.\n";
+      text += "   b. JIKA PUZZLE ADA STATUS '(produk harus diganti)':\n";
+      text += `      WAJIB masukkan instruksi Inpainting / Ganti Kemasan Produk: 'product swap, replace bottle with ${myProdName} (${myPackDesc}) held naturally with realistic shadow and reflection'.\n`;
+      text += "   c. GANTI ANGLE KAMERA (EYE-CATCHING):\n";
+      text += "      Buat sudut pandang kamera lebih menarik (misal: dynamic eye-level close-up, dramatic low-angle hero shot, macro close-up, cinematic lighting, 4k photorealistic).\n\n";
 
       text += "=====================================================\n";
       text += "STANDAR FORMAT OUTPUT (WAJIB DIIKUTI OLEH AI):\n";
@@ -1713,23 +1726,23 @@
       text += "[SCENE 1: Hook]\n";
       text += "Puzzling: Gunakan puzzling1 (deskripsi visual)\n";
       text += "Audio: \"Kalimat suara narator yang diucapkan di scene ini...\"\n";
-      text += "Prompt Video: Extreme macro close-up shot of hands holding black permanent marker drawing bold line on car ceiling fabric, dramatic studio lighting, 4k photorealistic\n\n";
+      text += `Prompt Video: Dynamic medium close-up angle, face swap talent with friendly 25yo Indonesian man looking directly at camera speaking excitedly, replace bottle with ${myProdName} (${myPackDesc}), dramatic studio lighting, 4k photorealistic\n\n`;
       text += "[SCENE 2: Problem]\n";
       text += "Puzzling: Gunakan puzzling2\n";
       text += "Audio: \"Kalimat suara narator untuk edukasi problem...\"\n";
-      text += "Prompt Video: Close-up angled shot showing delicate velvet texture, dynamic camera slide, warm cinematic lighting\n\n";
+      text += "Prompt Video: Extreme macro close-up shot of delicate velvet car ceiling fabric texture, slow dynamic tilt, warm cinematic lighting, showing deep stubborn ink stain\n\n";
       text += "[SCENE 3: Solusi]\n";
       text += "Puzzling: Gunakan puzzling3\n";
       text += "Audio: \"Kalimat suara narator saat demo busa/produk...\"\n";
-      text += "Prompt Video: Low-angle dynamic zoom of thick active white foam expanding instantly on dark fabric, hyper-detailed\n\n";
+      text += `Prompt Video: Low-angle dynamic zoom, replace bottle with ${myProdName} spray bottle, thick active white foam expanding instantly on dark fabric, hyper-detailed commercial shot\n\n`;
       text += "[SCENE 4: Demo / Klimaks]\n";
       text += "Puzzling: Gunakan puzzling4\n";
       text += "Audio: \"Kalimat suara narator hasil before-after...\"\n";
-      text += "Prompt Video: Smooth gliding tracking shot of microfiber cloth wiping clean revealing spotless surface, high contrast\n\n";
+      text += "Prompt Video: Smooth gliding tracking shot of microfiber cloth wiping clean revealing spotless surface, high contrast, cinematic before-after reveal\n\n";
       text += "[SCENE 5: Penawaran & CTA]\n";
       text += "Puzzling: Gunakan puzzling5\n";
       text += "Audio: \"Kalimat ajakan klik keranjang kuning promo hari ini...\"\n";
-      text += "Prompt Video: Clean commercial product hero shot on sleek pedestal, studio lighting, glowing discount badge overlay\n";
+      text += `Prompt Video: Eye-level commercial hero shot, face swap talent with energetic Indonesian creator pointing enthusiastically to bottom-left corner, holding ${myProdName} bottle, glowing yellow cart discount badge, studio lighting\n`;
 
       return text;
     }

@@ -85,7 +85,7 @@ INFORMASI BRAND PENGGUNA:
 - Karakter Model/Talent Pengganti: {my_talent_desc or 'Pria Indonesia usia muda berpenampilan kasual ramah'}
 
 TUGAS UTAMA DETEKSI PER SCENE:
-ATURAN DURASI SCENE: Setiap scene dalam `breakdown_scene` WAJIB memiliki durasi MINIMAL 3.0 detik (detik_selesai - detik_mulai >= 3.0 detik). DILARANG membuat scene di bawah 3 detik karena AI Video Gen (Gemini Omni) memerlukan durasi video minimal 3 detik untuk diproses.
+ATURAN DURASI SCENE: Setiap scene dalam `breakdown_scene` WAJIB memiliki durasi MINIMAL 3.0 detik dan MAKSIMAL 10.0 detik (3.0 <= detik_selesai - detik_mulai <= 10.0 detik). DILARANG membuat scene di bawah 3 detik atau di atas 10 detik karena Google Omni hanya menerima video dengan rentang durasi 3 s/d 10 detik. Jika ada bagian video yang panjang, pecah menjadi beberapa scene berurutan masing-masing berdurasi 4 s/d 8 detik!
 Untuk setiap scene dalam `breakdown_scene`, lakukan klasifikasi visual dengan sangat teliti:
 1. `ada_produk`: (boolean: true/false) Apakah di scene ini terlihat botol/kaleng/kemasan produk (baik merek kompetitor seperti V-MAX, Spray, dsb, maupun produk apapun)? Jika produk fisik terlihat/dipegang/disemprotkan, WAJIB set true!
 2. `ada_wajah`: (boolean: true/false) Apakah di scene ini terlihat wajah orang / kreator / talent? Jika ada orang berbicara atau wajahnya tampak, WAJIB set true!

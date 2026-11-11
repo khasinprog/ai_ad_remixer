@@ -649,9 +649,13 @@
         alert("Masukkan minimal 1 link TikTok (1 link per baris).");
         return;
       }
-      const urls = text.split('\n').map(u => u.trim()).filter(u => u.length > 0 && u.startsWith('http'));
+
+      // Robust URL extractor: matches any http/https link even with numbering, comma, or spaces
+      const rawMatches = text.match(/https?:\/\/[^\s,;"'<>]+/gi) || [];
+      const urls = Array.from(new Set(rawMatches.map(u => u.trim()))).filter(u => u.length > 0);
+
       if (urls.length === 0) {
-        alert("Tidak ada link URL yang valid (harus diawali http/https).");
+        alert("Tidak ada link URL yang valid terdeteksi (harus diawali http:// atau https://).");
         return;
       }
 
@@ -659,7 +663,7 @@
       const btnText = document.getElementById('btnBatchText');
       const btnIcon = document.getElementById('btnBatchIcon');
       btn.disabled = true;
-      btnText.innerText = `Memproses ${urls.length} video TikTok...`;
+      btnText.innerText = `Memproses ${urls.length} video TikTok... (Download, Analisis AI & Potong)`;
       btnIcon.className = "fa-solid fa-spinner fa-spin";
 
       try {
@@ -673,7 +677,21 @@
           throw new Error(data.error || "Gagal memproses batch video TikTok");
         }
 
-        alert(`Selesai! Berhasil memproses ${data.summary?.length || 0} video, menambahkan ${data.new_puzzles_added || 0} kepingan puzzle baru (Total: ${data.total_puzzles || 0} puzzle).`);
+        const summary = data.summary || [];
+        const successItems = summary.filter(s => s.success);
+        const failedItems = summary.filter(s => !s.success);
+
+        if (failedItems.length > 0) {
+          const errDetails = failedItems.map((f, i) => `${i + 1}. ${f.url}\n   ⚠️ Penyebab: ${f.error}`).join('\n\n');
+          if (successItems.length > 0) {
+            alert(`⚠️ Selesai Sebagian (${successItems.length} dari ${summary.length} video berhasil):\n\n✅ Berhasil:\n${successItems.map(s => '• ' + (s.title || s.url)).join('\n')}\n\n❌ GAGAL (${failedItems.length} video):\n${errDetails}\n\n${data.new_puzzles_added || 0} puzzle baru berhasil ditambahkan.`);
+          } else {
+            alert(`❌ Semua (${failedItems.length}) video gagal diproses:\n\n${errDetails}`);
+          }
+        } else {
+          alert(`🎉 Sukses! Semua (${successItems.length}) video TikTok berhasil diunduh dan dipotong menjadi ${data.new_puzzles_added || 0} puzzle baru (Total di Library: ${data.total_puzzles || 0} puzzle).`);
+        }
+
         document.getElementById('batchTiktokUrls').value = '';
         loadPuzzles();
         switchTab('tab-puzzles');

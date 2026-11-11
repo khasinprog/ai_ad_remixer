@@ -405,33 +405,51 @@ class AdStudioHandler(BaseHTTPRequestHandler):
                 if not u:
                     continue
                 try:
+                    print(f"\n[Batch TikTok] Mengambil data video: {u}")
                     tt_data = fetch_tiktok_data(u)
-                    video_url = tt_data["video"]["no_watermark_hd"] or tt_data["video"]["no_watermark"]
+                    
+                    video_info = tt_data.get("video") or {}
+                    video_url = video_info.get("no_watermark_hd") or video_info.get("no_watermark")
+                    if not video_url:
+                        if tt_data.get("is_image_slide"):
+                            raise ValueError("Konten ini berupa slideshow foto, bukan video MP4.")
+                        raise ValueError("Link video tanpa watermark tidak ditemukan dari API.")
+
                     clean_title = sanitize_filename(tt_data.get("title", "tiktok_video"))
                     target_video_path = os.path.join(DOWNLOADS_DIR, f"{clean_title}_{tt_data['id']}_no_watermark.mp4")
 
                     if not os.path.exists(target_video_path):
+                        print(f"[Batch TikTok] Mengunduh MP4 ke: {target_video_path}")
                         download_stream(video_url, target_video_path)
+                    else:
+                        print(f"[Batch TikTok] File video sudah tersimpan di: {target_video_path}")
 
                     # Extract scenes with Gemini
+                    print(f"[Batch TikTok] Menganalisis potongan scene dengan Gemini...")
                     analysis = analyze_video(target_video_path)
                     scenes = analysis.get("breakdown_scene", [])
+                    print(f"[Batch TikTok] Ditemukan {len(scenes)} scene. Memotong jadi klip puzzle...")
 
                     # Slice video into puzzles
                     cut_puzzles = slice_video_to_puzzles(target_video_path, scenes, PUZZLES_DIR)
+                    added_count = 0
                     for r in cut_puzzles:
                         if r.get("filename") not in existing_files:
                             existing_puzzles.append(r)
                             existing_files.add(r.get("filename"))
                             new_puzzles_total += 1
+                            added_count += 1
 
+                    print(f"[Batch TikTok] ✅ Berhasil memproses: {clean_title} (+{added_count} puzzle baru)")
                     results_summary.append({
                         "url": u,
-                        "title": tt_data.get("title", ""),
+                        "title": tt_data.get("title", clean_title),
                         "success": True,
-                        "scenes_cut": len(cut_puzzles)
+                        "scenes_cut": len(cut_puzzles),
+                        "new_added": added_count
                     })
                 except Exception as err:
+                    print(f"[Batch TikTok ERROR] ❌ Gagal memproses {u}: {err}")
                     results_summary.append({
                         "url": u,
                         "success": False,

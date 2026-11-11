@@ -1626,7 +1626,27 @@
       text += "Tolong buatkan skrip iklan baru yang berdaya konversi tinggi (Winning Ads Direct Response) dengan alur:\n";
       text += "1. Tiru ritme, hook psikologis, dan alur persuasi dari video referensi di atas.\n";
       text += "2. Arahkan visual setiap scene HANYA dengan memilih potongan visual dari 'puzzling' yang tersedia di atas (sebutkan kode puzzling-nya, misal: 'Gunakan puzzling3').\n";
-      text += "3. Utamakan kepingan yang berstatus (bisa langsung pake), dan jika menggunakan kepingan yang (produk/orang harus diganti), catat bahwa bagian itu akan diswap dengan Gemini Omni.\n";
+      text += "3. Utamakan kepingan yang berstatus (bisa langsung pake), dan jika menggunakan kepingan yang (produk/orang harus diganti), catat bahwa bagian itu akan diswap dengan Gemini Omni.\n\n";
+
+      text += "=====================================================\n";
+      text += "STANDAR FORMAT OUTPUT (WAJIB DIIKUTI OLEH AI):\n";
+      text += "=====================================================\n";
+      text += "PENTING: Di bagian paling akhir jawabanmu, kamu WAJIB menuliskan rancangan skrip final dalam blok format persis seperti di bawah ini agar bisa otomatis di-paste ke aplikasi Studio kami:\n\n";
+      text += "[SCENE 1: Hook]\n";
+      text += "Visual: Gunakan puzzling1 (deskripsi aksi visual)\n";
+      text += "Audio: \"Kalimat suara narator yang diucapkan di scene ini\"\n\n";
+      text += "[SCENE 2: Problem]\n";
+      text += "Visual: Gunakan puzzling2 (deskripsi aksi visual)\n";
+      text += "Audio: \"Kalimat suara narator\"\n\n";
+      text += "[SCENE 3: Solusi]\n";
+      text += "Visual: Gunakan puzzling3 (deskripsi aksi visual)\n";
+      text += "Audio: \"Kalimat suara narator\"\n\n";
+      text += "[SCENE 4: Demo / Before-After]\n";
+      text += "Visual: Gunakan puzzling4 (deskripsi aksi visual)\n";
+      text += "Audio: \"Kalimat suara narator\"\n\n";
+      text += "[SCENE 5: Penawaran & CTA]\n";
+      text += "Visual: Gunakan puzzling5 (deskripsi aksi visual)\n";
+      text += "Audio: \"Kalimat suara narator\"\n";
 
       return text;
     }
@@ -1691,7 +1711,9 @@
     }
 
     function parseAIScriptText(rawText) {
-      // 1. Try JSON if AI returned JSON
+      if (!rawText || !rawText.trim()) return [];
+
+      // 1. Try JSON if AI returned JSON block
       try {
         const jsonMatch = rawText.match(/\[\s*\{[\s\S]*\}\s*\]/);
         if (jsonMatch) {
@@ -1707,17 +1729,40 @@
         }
       } catch (e) {}
 
-      // 2. Intelligent Block / Line parser
-      const lines = rawText.split('\n');
-      const scenes = [];
+      // 2. Check for Markdown Table format (| Scene | Visual | Audio |)
+      const allLines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const tableLines = allLines.filter(l => l.includes('|'));
+      if (tableLines.length >= 2) {
+        const tableScenes = [];
+        for (const line of tableLines) {
+          const cols = line.split('|').map(c => c.trim()).filter(c => c.length > 0);
+          if (cols.length >= 3) {
+            const firstCol = cols[0].toLowerCase();
+            if (firstCol.includes('scene') || firstCol.includes('---') || firstCol.includes('no.')) {
+              continue; // Header row
+            }
+            tableScenes.push({
+              id: Date.now() + tableScenes.length + Math.random(),
+              scene_name: cols[0],
+              visual_intent: cols[1],
+              voice_script: cols[2].replace(/^["'“”]+|["'“”]+$/g, '').trim()
+            });
+          }
+        }
+        if (tableScenes.length > 0) {
+          return tableScenes;
+        }
+      }
+
+      // 3. Check for Standard [SCENE X] / Scene X: blocks with Visual: and Audio:
+      const blockScenes = [];
       let current = null;
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
+      for (let i = 0; i < allLines.length; i++) {
+        const line = allLines[i];
 
-        // Detect scene header (e.g. "Hook", "Scene 1", "1. Hook", "Scene 2 (Problem)", ":hook:", etc.)
-        const isHeader = /^(?:#+\s*)?(?:[:\*]*)(hook|scene\s*\d+|ad\s*\d+|\d+\.\s*[a-zA-Z]+)(?:[:\*]*)(.*)$/i.test(line) &&
+        // Header pattern (e.g. "[SCENE 1: Hook]", "Scene 1 (Hook)", "1. Hook", "Hook (0-3 detik)", ":hook:")
+        const isHeader = /^(?:\[|\*|#)*(?:scene\s*\d+|hook|ad\s*\d+|\d+\.\s*[a-zA-Z]+)(?:\]|\*|#|:|\s)*(.*)$/i.test(line) &&
                          !line.toLowerCase().startsWith('visual:') && 
                          !line.toLowerCase().startsWith('audio:') &&
                          !line.toLowerCase().startsWith('suara:') &&
@@ -1725,12 +1770,12 @@
 
         if (isHeader) {
           if (current && (current.visual_intent || current.voice_script)) {
-            scenes.push(current);
+            blockScenes.push(current);
           }
-          const cleanTitle = line.replace(/^[\*#:\s-]+|[\*#:\s-]+$/g, '').trim();
+          const cleanTitle = line.replace(/^[\[\(\*#:\s-]+|[\]\)\*#:\s-]+$/g, '').trim();
           current = {
-            id: Date.now() + scenes.length + Math.random(),
-            scene_name: cleanTitle,
+            id: Date.now() + blockScenes.length + Math.random(),
+            scene_name: cleanTitle || `Scene ${blockScenes.length + 1}`,
             visual_intent: '',
             voice_script: ''
           };
@@ -1738,41 +1783,95 @@
         }
 
         if (!current) {
-          current = {
-            id: Date.now() + Math.random(),
-            scene_name: 'Hook / Scene 1',
-            visual_intent: '',
-            voice_script: ''
-          };
+          // If we see Visual: or Audio: before any header
+          if (/^(?:visual|audio|suara|skrip|voiceover)\s*:/i.test(line)) {
+            current = {
+              id: Date.now() + Math.random(),
+              scene_name: 'Hook (0-3s)',
+              visual_intent: '',
+              voice_script: ''
+            };
+          }
         }
 
-        // Visual intent line
-        const visMatch = line.match(/^(?:visual|aksi visual|aksi|visual intent|video|puzzling)\s*:\s*(.*)$/i);
-        if (visMatch) {
-          current.visual_intent = (current.visual_intent ? current.visual_intent + ' ' : '') + visMatch[1].trim();
-          continue;
-        }
+        if (current) {
+          const visMatch = line.match(/^(?:visual|aksi visual|aksi|visual intent|video|puzzling)\s*:\s*(.*)$/i);
+          if (visMatch) {
+            current.visual_intent = (current.visual_intent ? current.visual_intent + ' ' : '') + visMatch[1].trim();
+            continue;
+          }
 
-        // Voice script line
-        const audMatch = line.match(/^(?:audio|suara|skrip suara|skrip|voiceover|voice|narasi|kata)\s*:\s*(.*)$/i);
-        if (audMatch) {
-          current.voice_script = (current.voice_script ? current.voice_script + ' ' : '') + audMatch[1].replace(/^["']|["']$/g, '').trim();
-          continue;
-        }
+          const audMatch = line.match(/^(?:audio|suara|skrip suara|skrip|voiceover|voice|narasi|kata)\s*:\s*(.*)$/i);
+          if (audMatch) {
+            current.voice_script = (current.voice_script ? current.voice_script + ' ' : '') + audMatch[1].replace(/^["'“”]+|["'“”]+$/g, '').trim();
+            continue;
+          }
 
-        // Continuation
-        if (current.voice_script && !current.visual_intent) {
-          current.voice_script += ' ' + line.replace(/^["']|["']$/g, '');
-        } else if (current.visual_intent) {
-          current.visual_intent += ' ' + line;
+          // Continuation text
+          if (current.voice_script && !current.visual_intent) {
+            current.voice_script += ' ' + line.replace(/^["'“”]+|["'“”]+$/g, '');
+          } else if (current.visual_intent) {
+            current.visual_intent += ' ' + line;
+          }
         }
       }
 
       if (current && (current.visual_intent || current.voice_script)) {
-        scenes.push(current);
+        blockScenes.push(current);
       }
 
-      return scenes;
+      if (blockScenes.length > 0) {
+        return blockScenes;
+      }
+
+      // 4. Fallback: Parse rows that contain quoted speech ("...") like tabular ChatGPT responses
+      const quotedRows = [];
+      for (const line of allLines) {
+        // Skip metadata lines
+        const lower = line.toLowerCase();
+        if (lower.startsWith('persona') || lower.startsWith('format:') || lower.startsWith('tone:') || lower.startsWith('skrip lengkap')) {
+          continue;
+        }
+
+        // Search for quotes: "..." or “...”
+        const qMatch = line.match(/["“](.*?)["”]/);
+        if (qMatch) {
+          const audioText = qMatch[1].trim();
+          const prefix = line.substring(0, qMatch.index).trim();
+          
+          if (!prefix && lower.includes('audio') && lower.includes('visual')) {
+            continue; // Header
+          }
+
+          // Split prefix by tabs or 2+ spaces
+          const parts = prefix.split(/\t+|\s{2,}/).map(p => p.trim()).filter(p => p.length > 0);
+          let scName = `Scene ${quotedRows.length + 1}`;
+          let visual = '';
+
+          if (parts.length >= 2) {
+            scName = parts[0];
+            visual = parts.slice(1).join(' ');
+          } else if (parts.length === 1) {
+            scName = parts[0];
+            visual = 'Gunakan puzzling terkait aksi ini';
+          } else {
+            visual = prefix || 'Gunakan puzzling terkait aksi ini';
+          }
+
+          quotedRows.push({
+            id: Date.now() + quotedRows.length + Math.random(),
+            scene_name: scName.replace(/^[\[\(\*#:\s-]+|[\]\)\*#:\s-]+$/g, '').trim(),
+            visual_intent: visual,
+            voice_script: audioText
+          });
+        }
+      }
+
+      if (quotedRows.length > 0) {
+        return quotedRows;
+      }
+
+      return [];
     }
   </script>
 

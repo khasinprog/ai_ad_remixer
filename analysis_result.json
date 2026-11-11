@@ -1,54 +1,139 @@
 {
+  "product_relation": "different",
   "hook": {
     "durasi_detik": 3,
-    "aksi_visual": "Pria mencoret plafon mobilnya dengan spidol permanen hitam, menanggapi komentar 'UNTUK PLAPON BISA BG' yang muncul sebagai overlay.",
-    "skrip_suara": "Bisa, Bang. Nih, kita coret-coret ya. Atap mobil kita seperti ini.",
-    "teknik_psikologi": "Menarik perhatian dengan aksi yang tidak biasa (mencoret plafon mobil), menciptakan rasa penasaran apakah noda permanen tersebut bisa dihilangkan, dan langsung merespons pertanyaan audiens (interaksi langsung)."
+    "aksi_visual": "Pria mencoret-coret plafon mobil dengan spidol permanen hitam.",
+    "skrip_suara": "Bisa, Bang. Nih, kita coret-coret ya atap mobil kita seperti ini. Ini bisa dihilangin loh.",
+    "teknik_psikologi": "Menampilkan masalah umum yang tampaknya sulit diatasi (noda permanen pada interior mobil) dan segera menjanjikan solusi, memicu rasa penasaran penonton."
   },
-  "transkrip_lengkap": "Bisa, Bang. Nih, kita coret-coret ya. Atap mobil kita seperti ini. Ini bisa dihilangin loh. Ini pakai tinta spidol yang permanen, teman-teman. Gunakan foam cleaner yang aku sematkan di sudut kiri bawah. Setelah itu Abang semprotin aja seperti ini. Nih. Ini bahannya bludru, teman-teman. Kalau disikat-sikat pakai brus itu bisa rusak bahannya ini, teman-teman. Disemprotin aja. Setelah itu Abang lap pakai kain lap microfiber. Nih, kita hasilnya seperti apa ya, nih. Nih. Nih. Langsung bersih, Bang. Nih. Apalagi kalau noda bintik-bintik di atap-atap. Apalagi orang yang suka ngerokok, teman-teman, itu bersihin aja pakai foam cleaner seperti ini. Harganya ini lagi murah banget, teman-teman. Dikasih harga promo dan stoknya ini juga masih ada. Buruan, langsung aja diambil.",
+  "transkrip_lengkap": "Bisa, Bang. Nih, kita coret-coret ya atap mobil kita seperti ini. Ini bisa dihilangin loh. Ini pakai tinta spidol yang permanen, Teman-teman. Gunakan form cleaner yang aku sematkan di sudut kiri bawah. Setelah itu Abang semprotin aja seperti ini. Nih. Ini bahannya bludru, Teman-teman. Kalau disikat-sikat pakai burus itu bisa rusak bahannya ini, Teman-teman. Disemprotin aja. Setelah itu Abang lap pakai kain lap microfiber. Nih, kita hasilnya seperti apa, ya. Nih. Nih. Langsung bersih, Bang. Nih. Apalagi kalau noda bintik-bintik di atap-atap, apalagi orang yang suka koko, Teman-teman, itu bersihin aja pakai form cleaner seperti ini. Harganya ini lagi murah banget, Teman-teman. Dikasih harga promo dan stoknya ini juga masih ada. Buruan langsung aja diambil.",
   "breakdown_scene": [
     {
       "scene": 1,
       "detik_mulai": 0,
-      "detik_selesai": 7,
-      "peran": "Hook / Problem",
-      "aksi_visual": "Pria mencoret plafon mobil dengan spidol permanen, menunjukkan noda spidol yang tampak membandel. Overlay komentar 'UNTUK PLAPON BISA BG' terlihat di layar. Pria menegaskan bahwa itu spidol permanen.",
-      "skrip_suara": "Bisa, Bang. Nih, kita coret-coret ya. Atap mobil kita seperti ini. Ini bisa dihilangin loh. Ini pakai tinta spidol yang permanen, teman-teman.",
-      "rekomendasi_edit_omni": "Perbesar tampilan komentar agar lebih mudah dibaca dan durasinya lebih lama. Tambahkan efek suara goresan spidol yang tajam untuk menekankan aksi. Pertegas fokus pada noda spidol."
+      "detik_selesai": 5,
+      "peran": "Hook / Problem / Solution Tease",
+      "aksi_visual": "Pria mencoret-coret plafon mobil dengan spidol permanen. Kemudian menunjukkan spidol ke kamera sambil berbicara.",
+      "skrip_suara": "Bisa, Bang. Nih, kita coret-coret ya atap mobil kita seperti ini. Ini bisa dihilangin loh. Ini pakai tinta spidol yang permanen, Teman-teman.",
+      "ada_produk": true,
+      "ada_wajah": true,
+      "kategori_visual": "Talent Shot",
+      "omni_action": "Ganti Wajah/Talent (Face Swap Omni)",
+      "rekomendasi_edit_omni": "Instruksi spesifik Gemini Omni Face Swap untuk mengganti wajah talent dengan 'Pria Indonesia usia 25 tahun, gaya kasual antusias', sesuaikan ekspresi dan artikulasi mulut saat berbicara."
     },
     {
       "scene": 2,
-      "detik_mulai": 7,
-      "detik_selesai": 17,
-      "peran": "Solusi / Demo Produk (Aplikasi)",
-      "aksi_visual": "Pria menunjukkan kaleng 'V-MAX Foam Cleaner', menunjuk ke sudut kiri bawah layar sebagai call to action (keranjang kuning). Kemudian menyemprotkan foam cleaner ke area yang terkena noda spidol. Foam putih menutup seluruh area noda. Pria menjelaskan bahwa bahan plafon adalah beludru dan tidak boleh disikat.",
-      "skrip_suara": "Gunakan foam cleaner yang aku sematkan di sudut kiri bawah. Setelah itu Abang semprotin aja seperti ini. Nih. Ini bahannya bludru, teman-teman. Kalau disikat-sikat pakai brus itu bisa rusak bahannya ini, teman-teman. Disemprotin aja.",
-      "rekomendasi_edit_omni": "Berikan highlight visual pada produk 'V-MAX Foam Cleaner' saat disebut. Tambahkan animasi panah yang jelas dan berkedip menunjuk ke ikon keranjang kuning. Tampilkan teks overlay singkat 'Aman untuk bahan bludru' atau 'Tidak perlu disikat' untuk menekankan keunggulan produk."
+      "detik_mulai": 5,
+      "detik_selesai": 7,
+      "peran": "Problem Definition / Credibility",
+      "aksi_visual": "Pria memegang spidol permanen, menjelaskan tintanya.",
+      "skrip_suara": "Ini pakai tinta spidol yang permanen, Teman-teman.",
+      "ada_produk": true,
+      "ada_wajah": true,
+      "kategori_visual": "Talent Shot",
+      "omni_action": "Ganti Wajah/Talent (Face Swap Omni)",
+      "rekomendasi_edit_omni": "Instruksi spesifik Gemini Omni Face Swap untuk mengganti wajah talent dengan 'Pria Indonesia usia 25 tahun, gaya kasual antusias', sesuaikan ekspresi dan artikulasi mulut saat berbicara."
     },
     {
       "scene": 3,
-      "detik_mulai": 17,
-      "detik_selesai": 31,
-      "peran": "Demo Produk (Hasil & Keunggulan)",
-      "aksi_visual": "Pria mengambil kain microfiber dan mulai mengelap foam yang sudah disemprotkan di plafon. Noda spidol secara ajaib hilang dengan cepat dan plafon kembali bersih seperti semula. Pria menekankan efektivitas produk untuk berbagai noda, termasuk noda rokok.",
-      "skrip_suara": "Setelah itu Abang lap pakai kain lap microfiber. Nih, kita hasilnya seperti apa ya, nih. Langsung bersih, Bang. Nih. Apalagi kalau noda bintik-bintik di atap-atap. Apalagi orang yang suka ngerokok, teman-teman, itu bersihin aja pakai foam cleaner seperti ini.",
-      "rekomendasi_edit_omni": "Gunakan efek transisi visual yang dramatis (misalnya, wipe effect atau morph) untuk menunjukkan perbedaan 'before-after' yang instan saat noda menghilang. Perjelas fokus pada area yang dibersihkan. Pastikan pencahayaan optimal untuk menunjukkan warna asli plafon setelah bersih."
+      "detik_mulai": 7,
+      "detik_selesai": 9,
+      "peran": "Solution Introduction / Product Shot",
+      "aksi_visual": "Pria memegang kaleng 'V-MAX' foam cleaner sambil berbicara ke kamera.",
+      "skrip_suara": "Gunakan form cleaner yang aku sematkan di sudut kiri bawah. Setelah itu Abang semprotin aja seperti ini. Nih.",
+      "ada_produk": true,
+      "ada_wajah": true,
+      "kategori_visual": "Hybrid",
+      "omni_action": "Ganti Kemasan & Wajah (Omni Hybrid Swap)",
+      "rekomendasi_edit_omni": "Instruksi spesifik Gemini Omni Video Inpainting untuk mengganti kemasan kompetitor (V-MAX) dengan 'Dohero Black' berbentuk 'Botol spray hitam matte 100ml dengan tutup kuning', pertahankan posisi genggaman tangan dan bayangan. Instruksi spesifik Gemini Omni Face Swap untuk mengganti wajah talent dengan 'Pria Indonesia usia 25 tahun, gaya kasual antusias', sesuaikan ekspresi dan artikulasi mulut saat berbicara."
     },
     {
       "scene": 4,
-      "detik_mulai": 31,
+      "detik_mulai": 9,
+      "detik_selesai": 13,
+      "peran": "Product Demo (Application)",
+      "aksi_visual": "Pria menyemprotkan foam cleaner dari kaleng 'V-MAX' ke noda spidol di plafon mobil, busa putih muncul.",
+      "skrip_suara": "Ini bahannya bludru, Teman-teman.",
+      "ada_produk": true,
+      "ada_wajah": true,
+      "kategori_visual": "Hybrid",
+      "omni_action": "Ganti Kemasan & Wajah (Omni Hybrid Swap)",
+      "rekomendasi_edit_omni": "Instruksi spesifik Gemini Omni Video Inpainting untuk mengganti kemasan kompetitor (V-MAX) dengan 'Dohero Black' berbentuk 'Botol spray hitam matte 100ml dengan tutup kuning', pertahankan posisi genggaman tangan dan bayangan. Instruksi spesifik Gemini Omni Face Swap untuk mengganti wajah talent dengan 'Pria Indonesia usia 25 tahun, gaya kasual antusias', sesuaikan ekspresi dan artikulasi mulut saat berbicara."
+    },
+    {
+      "scene": 5,
+      "detik_mulai": 13,
+      "detik_selesai": 17,
+      "peran": "Benefit / How-to / Problem Avoidance",
+      "aksi_visual": "Pria melihat ke busa di plafon, lalu mengambil kain microfiber sambil menjelaskan cara penggunaan.",
+      "skrip_suara": "Kalau disikat-sikat pakai burus itu bisa rusak bahannya ini, Teman-teman. Disemprotin aja.",
+      "ada_produk": false,
+      "ada_wajah": true,
+      "kategori_visual": "Talent Shot",
+      "omni_action": "Ganti Wajah/Talent (Face Swap Omni)",
+      "rekomendasi_edit_omni": "Instruksi spesifik Gemini Omni Face Swap untuk mengganti wajah talent dengan 'Pria Indonesia usia 25 tahun, gaya kasual antusias', sesuaikan ekspresi dan artikulasi mulut saat berbicara."
+    },
+    {
+      "scene": 6,
+      "detik_mulai": 17,
+      "detik_selesai": 19,
+      "peran": "Solution (Wiping setup)",
+      "aksi_visual": "Pria menunjukkan kain microfiber kuning ke kamera sambil berbicara.",
+      "skrip_suara": "Setelah itu Abang lap pakai kain lap microfiber. Nih, kita hasilnya seperti apa, ya. Nih.",
+      "ada_produk": false,
+      "ada_wajah": true,
+      "kategori_visual": "Talent Shot",
+      "omni_action": "Ganti Wajah/Talent (Face Swap Omni)",
+      "rekomendasi_edit_omni": "Instruksi spesifik Gemini Omni Face Swap untuk mengganti wajah talent dengan 'Pria Indonesia usia 25 tahun, gaya kasual antusias', sesuaikan ekspresi dan artikulasi mulut saat berbicara."
+    },
+    {
+      "scene": 7,
+      "detik_mulai": 19,
+      "detik_selesai": 25,
+      "peran": "Product Demo (Cleaning Action & Result)",
+      "aksi_visual": "Pria mengelap noda spidol dan busa di plafon mobil menggunakan kain microfiber. Noda langsung bersih.",
+      "skrip_suara": "Nih. Langsung bersih, Bang.",
+      "ada_produk": false,
+      "ada_wajah": true,
+      "kategori_visual": "Hybrid",
+      "omni_action": "Ganti Wajah/Talent (Face Swap Omni)",
+      "rekomendasi_edit_omni": "Instruksi spesifik Gemini Omni Face Swap untuk mengganti wajah talent dengan 'Pria Indonesia usia 25 tahun, gaya kasual antusias', sesuaikan ekspresi dan artikulasi mulut saat berbicara."
+    },
+    {
+      "scene": 8,
+      "detik_mulai": 25,
+      "detik_selesai": 33,
+      "peran": "Benefit Amplification / Use Case Expansion",
+      "aksi_visual": "Pria melanjutkan mengelap plafon, lalu menunjuk ke area lain sambil menjelaskan kegunaan produk untuk noda lain.",
+      "skrip_suara": "Nih. Apalagi kalau noda bintik-bintik di atap-atap, apalagi orang yang suka koko, Teman-teman, itu bersihin aja pakai form cleaner seperti ini.",
+      "ada_produk": false,
+      "ada_wajah": true,
+      "kategori_visual": "Talent Shot",
+      "omni_action": "Ganti Wajah/Talent (Face Swap Omni)",
+      "rekomendasi_edit_omni": "Instruksi spesifik Gemini Omni Face Swap untuk mengganti wajah talent dengan 'Pria Indonesia usia 25 tahun, gaya kasual antusias', sesuaikan ekspresi dan artikulasi mulut saat berbicara."
+    },
+    {
+      "scene": 9,
+      "detik_mulai": 33,
       "detik_selesai": 38,
-      "peran": "Call To Action / Urgency",
-      "aksi_visual": "Pria memegang kaleng produk dan berbicara langsung ke kamera dengan antusias, menekankan harga promo dan stok yang masih tersedia.",
-      "skrip_suara": "Harganya ini lagi murah banget, teman-teman. Dikasih harga promo dan stoknya ini juga masih ada. Buruan, langsung aja diambil.",
-      "rekomendasi_edit_omni": "Tampilkan overlay teks 'HARGA PROMO!' dan 'STOK TERBATAS!' dengan desain yang menarik dan eye-catching. Gunakan efek zoom in perlahan pada wajah creator atau produk untuk menambah fokus. Tambahkan musik latar yang lebih upbeat di bagian ini untuk meningkatkan urgensi."
+      "peran": "Call To Action / Scarcity / Urgency",
+      "aksi_visual": "Pria kembali memegang kaleng 'V-MAX' foam cleaner dan berbicara ke kamera dengan antusias.",
+      "skrip_suara": "Harganya ini lagi murah banget, Teman-teman. Dikasih harga promo dan stoknya ini juga masih ada. Buruan langsung aja diambil.",
+      "ada_produk": true,
+      "ada_wajah": true,
+      "kategori_visual": "Hybrid",
+      "omni_action": "Ganti Kemasan & Wajah (Omni Hybrid Swap)",
+      "rekomendasi_edit_omni": "Instruksi spesifik Gemini Omni Video Inpainting untuk mengganti kemasan kompetitor (V-MAX) dengan 'Dohero Black' berbentuk 'Botol spray hitam matte 100ml dengan tutup kuning', pertahankan posisi genggaman tangan dan bayangan. Instruksi spesifik Gemini Omni Face Swap untuk mengganti wajah talent dengan 'Pria Indonesia usia 25 tahun, gaya kasual antusias', sesuaikan ekspresi dan artikulasi mulut saat berbicara."
     }
   ],
   "formula_winning_iklan": [
-    "Problem-Solution-Demonstration: Mengidentifikasi masalah umum (noda plafon mobil), menunjukkan solusi (produk), dan mendemonstrasikan efektivitasnya secara visual dan instan.",
-    "User-Generated Content (UGC) / Testimonial Style: Diawali dengan menanggapi komentar pengguna, menciptakan kesan organik dan relevan seolah-olah menjawab pertanyaan audiens secara langsung.",
-    "Pain Point & Benefit-Driven: Mengatasi kekhawatiran audiens (noda permanen, merusak bahan) dan menyoroti manfaat produk (aman untuk bludru, membersihkan noda rokok, tidak perlu disikat keras).",
-    "Strong Call To Action with Urgency: Secara eksplisit mengajak untuk membeli dengan penawaran harga promo dan menekankan ketersediaan stok yang terbatas untuk mendorong keputusan pembelian instan.",
-    "Visual Proof: Menunjukkan hasil 'before-after' yang sangat jelas dan cepat, membangun kepercayaan pada efikasi produk."
-  ]
+    "Problem-Solution Hook: Dengan cepat menarik perhatian penonton melalui demonstrasi masalah yang jelas (noda spidol permanen) dan menawarkan solusi yang mudah.",
+    "Demonstrasi Produk yang Jelas dan Efektif: Menunjukkan penggunaan produk secara langkah demi langkah (semprot, lap) dengan hasil visual yang instan dan memuaskan (noda hilang).",
+    "Fokus pada Kemudahan & Manfaat: Menyoroti kemudahan penggunaan produk ('disemprotin aja') dan menghindari kerusakan (tidak perlu disikat), serta menunjukkan fleksibilitas untuk berbagai jenis noda.",
+    "Menciptakan Urgensi dan Nilai: Menarik perhatian dengan menyebutkan 'harga promo' dan 'stok masih ada' untuk mendorong pembelian segera.",
+    "Call to Action yang Langsung: Mengakhiri video dengan ajakan yang jelas dan lugas ('Buruan langsung aja diambil') untuk mendorong konversi."
+  ],
+  "my_product_name": "Dohero Black",
+  "my_packaging_desc": "Botol spray hitam matte 100ml dengan tutup kuning",
+  "my_talent_desc": "Pria Indonesia usia 25 tahun, gaya kasual antusias"
 }

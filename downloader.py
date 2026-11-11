@@ -31,8 +31,18 @@ def sanitize_filename(filename: str, max_length: int = 60) -> str:
     return clean[:max_length]
 
 
+def resolve_tiktok_url(url: str) -> str:
+    """Resolve shortened TikTok URL to full URL if needed."""
+    try:
+        req = urllib.request.Request(url, headers=DEFAULT_HEADERS)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return resp.geturl()
+    except Exception:
+        return url
+
+
 def fetch_tiktok_data(tiktok_url: str) -> Dict[str, Any]:
-    """Fetch video metadata from TikWM API.
+    """Fetch video metadata from TikWM API with retry and redirect resolution.
     
     Args:
         tiktok_url: URL to TikTok video or photo post.
@@ -44,21 +54,39 @@ def fetch_tiktok_data(tiktok_url: str) -> Dict[str, Any]:
     if not cleaned_url:
         raise ValueError("URL TikTok tidak boleh kosong.")
 
-    # Request to TikWM API
-    api_endpoint = f"{TIKWM_API_URL}?url={urllib.parse.quote(cleaned_url)}&hd=1"
-    req = urllib.request.Request(api_endpoint, headers=DEFAULT_HEADERS)
+    # Try fetching with original URL first, then resolved URL if needed
+    urls_to_try = [cleaned_url]
+    if "vt.tiktok.com" in cleaned_url or "vm.tiktok.com" in cleaned_url:
+        resolved = resolve_tiktok_url(cleaned_url)
+        if resolved != cleaned_url:
+            urls_to_try.append(resolved)
 
-    try:
-        with urllib.request.urlopen(req, timeout=15) as response:
-            res_body = response.read().decode("utf-8")
-            data = json.loads(res_body)
-    except Exception as e:
-        raise RuntimeError(f"Gagal menghubungi server TikTok downloader: {e}")
+    last_error = None
+    data = None
 
-    code = data.get("code")
-    if code != 0:
-        msg = data.get("msg", "Gagal memproses link TikTok. Pastikan video publik dan link valid.")
-        raise ValueError(f"Error dari API: {msg}")
+    for target_url in urls_to_try:
+        for attempt in range(2):
+            api_endpoint = f"{TIKWM_API_URL}?url={urllib.parse.quote(target_url)}&hd=1"
+            req = urllib.request.Request(api_endpoint, headers=DEFAULT_HEADERS)
+            try:
+                with urllib.request.urlopen(req, timeout=20) as response:
+                    res_body = response.read().decode("utf-8")
+                    data = json.loads(res_body)
+                    if data.get("code") == 0 and data.get("data"):
+                        break
+                    else:
+                        last_error = data.get("msg", "API tidak mengembalikan data video")
+            except Exception as e:
+                last_error = str(e)
+            
+            import time
+            time.sleep(1)
+
+        if data and data.get("code") == 0 and data.get("data"):
+            break
+
+    if not data or data.get("code") != 0 or not data.get("data"):
+        raise ValueError(f"Gagal mengambil video TikTok: {last_error or 'Pastikan link valid dan video bersifat publik'}")
 
     info = data.get("data", {})
     if not info:

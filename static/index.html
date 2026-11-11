@@ -664,7 +664,11 @@
         loadPuzzles();
         switchTab('tab-puzzles');
       } catch (err) {
-        alert("Error: " + err.message);
+        let msg = err.message;
+        if (msg === 'Failed to fetch') {
+          msg = "Koneksi ke server terputus. Pastikan server aktif di http://localhost:5055 dan coba lagi.";
+        }
+        alert("Error: " + msg);
       } finally {
         btn.disabled = false;
         btnText.innerText = "Download & Potong Semua Jadi Puzzle";
@@ -762,7 +766,11 @@
         renderAnalysis(analyzeData.data);
         loadLocalVideos();
       } catch (err) {
-        alert("Error: " + err.message);
+        let msg = err.message;
+        if (msg === 'Failed to fetch') {
+          msg = "Koneksi ke server terputus. Pastikan server aktif di http://localhost:5055 dan coba lagi.";
+        }
+        alert("Error: " + msg);
       } finally {
         statusDiv.classList.add('hidden');
       }
@@ -805,7 +813,11 @@
         }
         renderAnalysis(data.data);
       } catch (err) {
-        alert("Error: " + err.message);
+        let msg = err.message;
+        if (msg === 'Failed to fetch') {
+          msg = "Koneksi ke server terputus. Pastikan server aktif di http://localhost:5055 dan coba lagi.";
+        }
+        alert("Error: " + msg);
       } finally {
         statusDiv.classList.add('hidden');
       }
@@ -922,7 +934,11 @@
         renderAnalysis(result.data);
         loadLocalVideos();
       } catch (err) {
-        alert("Error: " + err.message);
+        let msg = err.message;
+        if (msg === 'Failed to fetch') {
+          msg = "Koneksi ke server terputus. Pastikan server aktif di http://localhost:5055 dan coba lagi.";
+        }
+        alert("Error: " + msg);
       } finally {
         btn.disabled = false;
         btnText.innerText = "Bedah dengan Gemini";
@@ -1044,7 +1060,11 @@
         alert(`Berhasil memotong ${result.count} kepingan puzzle! Beralih ke Tab 2 (Puzzle Library)...`);
         switchTab('tab-puzzles');
       } catch (err) {
-        alert("Error: " + err.message);
+        let msg = err.message;
+        if (msg === 'Failed to fetch') {
+          msg = "Koneksi ke server terputus. Pastikan server aktif di http://localhost:5055 dan coba lagi.";
+        }
+        alert("Error: " + msg);
       } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-scissors"></i><span>Potong Jadi Klip Puzzle</span>`;

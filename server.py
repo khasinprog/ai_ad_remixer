@@ -10,7 +10,7 @@ import os
 import re
 import sys
 import urllib.parse
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DOWNLOADS_DIR = os.path.join(BASE_DIR, "downloads")
@@ -516,7 +516,7 @@ class AdStudioHandler(BaseHTTPRequestHandler):
 
 def run_server(port=PORT):
     server_address = ("", port)
-    httpd = HTTPServer(server_address, AdStudioHandler)
+    httpd = ThreadingHTTPServer(server_address, AdStudioHandler)
     print("\n" + "=" * 55)
     print(f"🎬 AI Video Ad Studio & Remixer Siap Digunakan!")
     print(f"👉 Buka browser di: http://localhost:{port}")

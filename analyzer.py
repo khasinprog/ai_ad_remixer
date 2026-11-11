@@ -85,24 +85,24 @@ INFORMASI BRAND PENGGUNA:
 - Karakter Model/Talent Pengganti: {my_talent_desc or 'Pria Indonesia usia muda berpenampilan kasual ramah'}
 
 TUGAS UTAMA DETEKSI PER SCENE:
-Untuk setiap scene dalam `breakdown_scene`, lakukan klasifikasi visual dengan teliti:
-1. `ada_produk`: (boolean: true/false) Apakah di scene ini terlihat jelas kemasan botol/label produk fisik?
-2. `ada_wajah`: (boolean: true/false) Apakah di scene ini terlihat jelas wajah orang / kreator / talent?
+Untuk setiap scene dalam `breakdown_scene`, lakukan klasifikasi visual dengan sangat teliti:
+1. `ada_produk`: (boolean: true/false) Apakah di scene ini terlihat botol/kaleng/kemasan produk (baik merek kompetitor seperti V-MAX, Spray, dsb, maupun produk apapun)? Jika produk fisik terlihat/dipegang/disemprotkan, WAJIB set true!
+2. `ada_wajah`: (boolean: true/false) Apakah di scene ini terlihat wajah orang / kreator / talent? Jika ada orang berbicara atau wajahnya tampak, WAJIB set true!
 3. `kategori_visual`: Pilih salah satu:
-   - "Universal Demo": Adegan demo netral tanpa wajah dan tanpa botol bermerek (contoh: close-up spakbor motor kusam, tangan mengusap spons berbusa, dashboard diguyur air deras). Klip ini 100% AMAN dipakai ulang untuk produk apapun!
+   - "Universal Demo": Adegan demo netral TANPA wajah orang dan TANPA botol/kemasan bermerek (contoh: close-up spakbor motor kusam, tangan mengusap kain microfiber pada plafon, foam bereaksi melarutkan kotoran, air deras mengguyur permukaan). Klip ini 100% AMAN dipakai langsung untuk produk apapun tanpa perlu diedit!
    - "Product Shot": Adegan yang menonjolkan botol/kemasan produk.
-   - "Talent Shot": Adegan orang/kreator berbicara atau berekspresi.
-   - "Hybrid": Adegan orang memegang botol produk sekaligus.
+   - "Talent Shot": Adegan orang/kreator berbicara atau berekspresi ke kamera.
+   - "Hybrid": Adegan orang/talent memegang botol produk sekaligus.
 4. `omni_action`:
-   - Jika "Universal Demo": "Bisa Dipakai Langsung (Universal B-Roll)"
+   - Jika "Universal Demo": "Aman Dipakai Langsung (Universal B-Roll)"
    - Jika `ada_produk` bernilai true dan Status Video adalah 'PRODUK BERBEDA': "Ganti Kemasan (Product Swap Omni)"
    - Jika `ada_wajah` bernilai true dan Status Video adalah 'PRODUK BERBEDA': "Ganti Wajah/Talent (Face Swap Omni)"
-   - Jika keduanya bernilai true dan 'PRODUK BERBEDA': "Ganti Kemasan & Ganti Wajah (Omni Hybrid Swap)"
-   - Jika Status Video adalah 'PRODUK SAMA': "Aman Dipakai / Polish Visual Sinematik"
-5. `rekomendasi_edit_omni`: Buatkan PROMPT EDIT AI (Gemini Omni / Video Inpainting) yang siap dipakai:
-   - Jika Universal Demo: instruksikan peningkatan saturasi warna, ketajaman refleksi glossy, dan pencahayaan sinematik tanpa mengubah objek.
-   - Jika ada kemasan & produk berbeda: berikan instruksi spesifik untuk mengganti botol kompetitor dengan '{my_product_name}' berbentuk '{my_packaging_desc}', pertahankan posisi genggaman tangan dan bayangan.
-   - Jika ada wajah & produk berbeda: berikan instruksi mengganti wajah talent dengan '{my_talent_desc}', sesuaikan ekspresi dan artikulasi mulut.
+   - Jika keduanya bernilai true dan 'PRODUK BERBEDA': "Ganti Kemasan & Wajah (Omni Hybrid Swap)"
+   - Jika Status Video adalah 'PRODUK SAMA': "Aman Dipakai Langsung"
+5. `rekomendasi_edit_omni`:
+   - Jika Universal Demo / Aman Dipakai Langsung: Tuliskan: "Aman dipakai langsung tanpa edit. (Opsional poles saturasi/transisi jika diperlukan)".
+   - Jika ada kemasan & produk berbeda: berikan instruksi spesifik Gemini Omni Video Inpainting untuk mengganti kemasan kompetitor dengan '{my_product_name}' berbentuk '{my_packaging_desc}', pertahankan posisi genggaman tangan dan bayangan.
+   - Jika ada wajah & produk berbeda: berikan instruksi spesifik Gemini Omni Face Swap untuk mengganti wajah talent dengan '{my_talent_desc}', sesuaikan ekspresi dan artikulasi mulut.
 
 Keluarkan hasil analisis HANYA dalam format JSON valid di dalam blok ```json ... ``` dengan struktur persis seperti ini:
 {{

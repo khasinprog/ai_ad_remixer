@@ -412,6 +412,13 @@
           <div class="flex flex-wrap items-center gap-2">
             <button 
               type="button" 
+              onclick="copyScriptFormat()" 
+              class="text-xs bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/40 px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow"
+            >
+              <i class="fa-solid fa-robot"></i> Salin Brief untuk AI
+            </button>
+            <button 
+              type="button" 
               onclick="openPasteAIModal()" 
               class="text-xs bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow"
             >
@@ -420,7 +427,7 @@
             <button 
               type="button" 
               onclick="loadImprovementTemplate()" 
-              class="text-xs bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/40 px-3 py-2 rounded-xl transition flex items-center gap-1.5"
+              class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-2 rounded-xl transition flex items-center gap-1.5"
             >
               <i class="fa-solid fa-file-pen"></i> Contoh Format Scene
             </button>
@@ -1360,29 +1367,52 @@
 
       matchedPlan.forEach((sc, idx) => {
         const card = document.createElement('div');
+        card.id = `matchedCard_${idx}`;
         card.className = "glass p-5 rounded-2xl border border-slate-800 space-y-4";
 
         const isOmni = !!sc.is_omni;
         const currentActiveClip = isOmni ? sc.omni_clip_url : sc.clip_url;
 
+        // Build puzzle options
+        let puzzleOptionsHtml = '';
+        if (availablePuzzles && availablePuzzles.length > 0) {
+          puzzleOptionsHtml = availablePuzzles.map((pz, pzIdx) => {
+            const isSel = (pz.filename === sc.selected_puzzle_filename || pz.clip_path === sc.clip_path) ? 'selected' : '';
+            const durStr = pz.durasi ? ` (${pz.durasi.toFixed(1)}s)` : '';
+            return `<option value="${pzIdx}" ${isSel} class="bg-slate-900 text-slate-200">puzzling${pzIdx + 1} - ${pz.filename}${durStr}</option>`;
+          }).join('');
+        } else {
+          puzzleOptionsHtml = `<option value="0" selected>${sc.selected_puzzle_filename || 'Default Klip'}</option>`;
+        }
+
         card.innerHTML = `
           <!-- Header Card -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
-            <div class="flex items-center gap-2">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+            <div class="flex flex-wrap items-center gap-2">
               <span class="w-6 h-6 rounded-full bg-rose-600 text-white font-bold flex items-center justify-center text-xs">
                 ${idx + 1}
               </span>
               <h4 class="text-sm font-bold text-white">${sc.scene_name}</h4>
-              <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">
-                ${sc.selected_puzzle_filename}
-              </span>
+              
+              <!-- Puzzle Clip Selector Dropdown -->
+              <div class="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 rounded-lg px-2 py-1 shadow-inner">
+                <i class="fa-solid fa-puzzle-piece text-rose-400 text-xs"></i>
+                <label class="text-[10px] text-slate-400 font-semibold mr-0.5">Klip:</label>
+                <select 
+                  onchange="handleChangeScenePuzzle(${idx}, this.value)" 
+                  class="text-[11px] bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer max-w-[210px] truncate"
+                  title="Ganti klip puzzle untuk scene ini"
+                >
+                  ${puzzleOptionsHtml}
+                </select>
+              </div>
             </div>
 
             <!-- Active Source Badge -->
             <div class="flex items-center gap-2">
               ${isOmni ? `
                 <span class="text-[11px] bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1.5">
-                  <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Menggunakan Video Omni
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Video Omni AI
                 </span>
                 <button onclick="handleRevertToPuzzle(${idx})" class="text-[11px] text-slate-400 hover:text-slate-200 underline">
                   Kembali ke Puzzle Asli
@@ -1406,32 +1436,48 @@
             <!-- Details & Prompts -->
             <div class="md:col-span-9 space-y-3 text-xs">
               
-              <!-- Script & Reasoning -->
-              <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 space-y-1.5">
-                <p><strong class="text-emerald-400">🎙️ Skrip Suara:</strong> <span class="text-slate-100 italic font-medium">"${sc.voice_script || '-'}"</span></p>
-                <p><strong class="text-slate-400">👁️ Arah Visual:</strong> <span class="text-slate-300">${sc.visual_intent || '-'}</span></p>
-                <p><strong class="text-cyan-400">💡 Alasan Kecocokan Gemini:</strong> <span class="text-slate-400">${sc.match_reason || '-'}</span></p>
+              <!-- Script & Reasoning (Editable Voiceover) -->
+              <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                <div class="flex items-center justify-between">
+                  <label class="font-semibold text-emerald-400 flex items-center gap-1.5 text-xs">
+                    <i class="fa-solid fa-microphone-lines"></i> Skrip Suara Voiceover (Narasi Iklan):
+                  </label>
+                  <span class="text-[10px] text-slate-500"><i class="fa-solid fa-pen-to-square mr-1"></i>Bisa diedit</span>
+                </div>
+                <textarea 
+                  rows="2"
+                  oninput="matchedPlan[${idx}].voice_script = this.value"
+                  class="w-full bg-slate-950/80 border border-slate-700/80 text-slate-100 rounded-lg p-2 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                  placeholder="Kalimat suara yang akan dibacakan AI Voiceover..."
+                >${sc.voice_script || ''}</textarea>
+                <div class="text-[11px] text-slate-400 flex flex-wrap gap-x-4 gap-y-1 pt-1 border-t border-slate-800/60">
+                  <p><strong class="text-slate-400">👁️ Arah Visual:</strong> <span class="text-slate-300">${sc.visual_intent || '-'}</span></p>
+                  <p><strong class="text-cyan-400">💡 Sumber:</strong> <span class="text-slate-400">${sc.match_reason || '-'}</span></p>
+                </div>
               </div>
 
-              <!-- Omni Camera Prompt Box -->
+              <!-- Prompt Edit Video (Hasil ChatGPT / Claude) Box -->
               <div class="bg-purple-950/20 border border-purple-800/40 p-3.5 rounded-xl space-y-2">
                 <div class="flex items-center justify-between">
                   <span class="text-[11px] font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-camera-rotate"></i> Prompt Edit Angle Kamera Omni (Eye-Catching)
+                    <i class="fa-solid fa-camera-rotate"></i> Prompt Edit Angle Kamera (Hasil AI / ChatGPT / Claude)
                   </span>
                   <button 
                     onclick="copyOmniPrompt('${encodeURIComponent(sc.omni_camera_prompt || '')}')" 
-                    class="bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/30 px-2.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center gap-1"
+                    class="bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/30 px-2.5 py-1 rounded-lg text-[10px] font-medium transition flex items-center gap-1 shadow"
                   >
                     <i class="fa-regular fa-copy"></i> Salin Prompt
                   </button>
                 </div>
-                <p class="text-[11px] text-purple-200 font-mono leading-relaxed bg-black/40 p-2.5 rounded-lg border border-purple-900/40 select-all">
-                  ${sc.omni_camera_prompt || '-'}
-                </p>
+                <textarea 
+                  rows="2"
+                  oninput="matchedPlan[${idx}].omni_camera_prompt = this.value"
+                  class="w-full text-[11px] text-purple-200 font-mono leading-relaxed bg-black/40 p-2.5 rounded-lg border border-purple-900/40 focus:outline-none focus:ring-1 focus:ring-purple-500 custom-scrollbar select-all"
+                  placeholder="Prompt instruksi kamera / visual untuk Kling, Luma, Runway, atau Gemini Omni..."
+                >${sc.omni_camera_prompt || ''}</textarea>
                 <p class="text-[10px] text-purple-400">
                   <i class="fa-solid fa-circle-info mr-1"></i>
-                  Gunakan prompt ini di Gemini Omni / AI Video Gen untuk menghasilkan klip dengan angle kamera yang lebih sinematik.
+                  Prompt kamera sinematik dari ChatGPT/Claude ini siap di-copy ke AI Video Generator (Gemini Omni, Kling, Runway, Luma).
                 </p>
               </div>
 
@@ -1440,8 +1486,8 @@
                 <div class="flex items-center gap-2 text-slate-300">
                   <i class="fa-solid fa-cloud-arrow-up text-purple-400 text-lg"></i>
                   <div>
-                    <p class="font-semibold text-[11px]">Upload Hasil Video Omni untuk Scene Ini (Opsional)</p>
-                    <p class="text-[10px] text-slate-500">File format .mp4 hasil render AI kamera baru</p>
+                    <p class="font-semibold text-[11px]">Upload Hasil Video AI / Omni untuk Scene Ini (Opsional)</p>
+                    <p class="text-[10px] text-slate-500">File format .mp4 hasil render AI video baru (otomatis swap klip puzzle)</p>
                   </div>
                 </div>
                 <div>
@@ -1462,6 +1508,17 @@
 
         container.appendChild(card);
       });
+    }
+
+    function handleChangeScenePuzzle(sceneIdx, pzIdx) {
+      if (!availablePuzzles || !availablePuzzles[pzIdx] || !matchedPlan[sceneIdx]) return;
+      const p = availablePuzzles[pzIdx];
+      matchedPlan[sceneIdx].selected_puzzle_filename = p.filename;
+      matchedPlan[sceneIdx].clip_path = p.clip_path;
+      matchedPlan[sceneIdx].clip_url = `/api/media?path=${encodeURIComponent(p.clip_path)}`;
+      matchedPlan[sceneIdx].thumb_url = p.thumb_path ? `/api/media?path=${encodeURIComponent(p.thumb_path)}` : `/api/media?path=${encodeURIComponent(p.clip_path)}`;
+      matchedPlan[sceneIdx].match_reason = `Dipilih manual: puzzling${parseInt(pzIdx) + 1} (${p.filename})`;
+      renderMatchedCards();
     }
 
     function copyOmniPrompt(encodedPrompt) {
@@ -1581,34 +1638,34 @@
     }
 
     function generateIntegratedAIBrief() {
-      if (!currentAnalysisData) return "";
-      const scenes = currentAnalysisData.breakdown_scene || [];
-      
       let text = "=====================================================\n";
       text += "BRIEF PEMBUATAN SKRIP IKLAN BARU (DIRECTED REMIX)\n";
       text += "=====================================================\n\n";
       
-      text += "video referensi\n";
-      text += "skrip:\n";
-      
-      if (currentAnalysisData.hook) {
-        text += ":hook:\n";
-        text += `visual: ${currentAnalysisData.hook.aksi_visual || '-'}\n`;
-        text += `audio: "${currentAnalysisData.hook.skrip_suara || '-'}"\n\n`;
+      text += "--- DATA VIDEO REFERENSI ---\n";
+      if (currentAnalysisData) {
+        text += "Skrip & Visual Asli:\n";
+        if (currentAnalysisData.hook) {
+          text += ":hook:\n";
+          text += `visual: ${currentAnalysisData.hook.aksi_visual || '-'}\n`;
+          text += `audio: "${currentAnalysisData.hook.skrip_suara || '-'}"\n\n`;
+        }
+        const scenes = currentAnalysisData.breakdown_scene || [];
+        scenes.forEach((s, idx) => {
+          text += `scene ${s.scene || (idx + 1)}\n`;
+          text += `visual: ${s.aksi_visual || '-'}\n`;
+          text += `audio: "${s.skrip_suara || '-'}"\n\n`;
+        });
+      } else {
+        text += "(Video referensi belum dianalisis di Tab 1, atau gunakan formula Anda sendiri)\n\n";
       }
 
-      scenes.forEach((s, idx) => {
-        text += `scene ${s.scene || (idx + 1)}\n`;
-        text += `visual: ${s.aksi_visual || '-'}\n`;
-        text += `audio: "${s.skrip_suara || '-'}"\n\n`;
-      });
-
-      text += "data visual yang bisa kamu ambil untuk buat video (puzzling inventory):\n";
+      text += "--- STOK KEPINGAN VISUAL YANG TERSEDIA (PUZZLING INVENTORY) ---\n";
       if (!availablePuzzles || availablePuzzles.length === 0) {
-        text += "(Belum ada potongan puzzle. Silakan klik 'Potong Jadi Klip Puzzle' di Tab 1).\n";
+        text += "(Perpustakaan puzzle masih kosong. Masukkan link video TikTok di Tab 1 atau 2 lalu klik 'Potong Jadi Klip Puzzle').\n";
       } else {
         availablePuzzles.forEach((p, idx) => {
-          let statusText = "bisa langsung pake";
+          let statusText = "bisa langsung pakai (Universal B-Roll)";
           if (p.ada_produk && p.ada_wajah) {
             statusText = "produk harus diganti & orang harus diganti";
           } else if (p.ada_produk) {
@@ -1616,47 +1673,55 @@
           } else if (p.ada_wajah) {
             statusText = "orang harus diganti";
           } else if (p.kategori_visual === 'Universal Demo') {
-            statusText = "bisa langsung pake (Universal Demo)";
+            statusText = "bisa langsung pakai (Universal Demo)";
           }
-          text += `puzzling${idx + 1}: ${p.aksi_visual || p.filename} (${statusText})\n`;
+          const durStr = p.durasi ? ` [Durasi: ${p.durasi.toFixed(1)}s]` : '';
+          text += `puzzling${idx + 1}: ${p.aksi_visual || p.filename}${durStr} (${statusText})\n`;
         });
       }
 
       text += "\n--- INSTRUKSI UNTUK AI (ChatGPT / Claude / Gemini) ---\n";
-      text += "Tolong buatkan skrip iklan baru yang berdaya konversi tinggi (Winning Ads Direct Response) dengan alur:\n";
-      text += "1. Tiru ritme, hook psikologis, dan alur persuasi dari video referensi di atas.\n";
-      text += "2. Arahkan visual setiap scene HANYA dengan memilih potongan visual dari 'puzzling' yang tersedia di atas (sebutkan kode puzzling-nya, misal: 'Gunakan puzzling3').\n";
-      text += "3. Utamakan kepingan yang berstatus (bisa langsung pake), dan jika menggunakan kepingan yang (produk/orang harus diganti), catat bahwa bagian itu akan diswap dengan Gemini Omni.\n\n";
+      text += "Bertindaklah sebagai Creative Director & Scriptwriter iklan Winning Ads (Direct Response Video):\n";
+      text += "1. Buat skrip iklan baru dengan hook tajam, alur persuasi (Hook -> Problem -> Solusi -> Demo Before-After -> Penawaran & CTA).\n";
+      text += "2. Setiap scene HARUS memilih visual dari 'puzzling inventory' di atas (tuliskan kode 'puzzling1', 'puzzling2', dst).\n";
+      text += "3. TULISKAN PROMPT EDIT VIDEO / PROMPT KAMERA (dalam bahasa Inggris sinematik untuk AI Video Gen seperti Kling / Luma / Runway / Gemini Omni):\n";
+      text += "   - Rancang angle kamera baru yang eye-catching (misal: extreme close-up, dynamic camera roll/tilt, slow-motion splash, cinematic macro shot, dramatic studio lighting).\n";
+      text += "   - Prompt ini digunakan untuk mere-generate angle video agar tampilan iklan baru lebih segar dan memikat penonton.\n\n";
 
       text += "=====================================================\n";
       text += "STANDAR FORMAT OUTPUT (WAJIB DIIKUTI OLEH AI):\n";
       text += "=====================================================\n";
-      text += "PENTING: Di bagian paling akhir jawabanmu, kamu WAJIB menuliskan rancangan skrip final dalam blok format persis seperti di bawah ini agar bisa otomatis di-paste ke aplikasi Studio kami:\n\n";
+      text += "PENTING: Di bagian akhir jawabanmu, kamu WAJIB menuliskan rancangan skrip final persis dalam blok format seperti di bawah ini agar otomatis terbaca oleh aplikasi Studio kami:\n\n";
       text += "[SCENE 1: Hook]\n";
-      text += "Visual: Gunakan puzzling1 (deskripsi aksi visual)\n";
-      text += "Audio: \"Kalimat suara narator yang diucapkan di scene ini\"\n\n";
+      text += "Puzzling: Gunakan puzzling1 (deskripsi visual)\n";
+      text += "Audio: \"Kalimat suara narator yang diucapkan di scene ini...\"\n";
+      text += "Prompt Video: Extreme macro close-up shot of hands holding black permanent marker drawing bold line on car ceiling fabric, dramatic studio lighting, 4k photorealistic\n\n";
       text += "[SCENE 2: Problem]\n";
-      text += "Visual: Gunakan puzzling2 (deskripsi aksi visual)\n";
-      text += "Audio: \"Kalimat suara narator\"\n\n";
+      text += "Puzzling: Gunakan puzzling2\n";
+      text += "Audio: \"Kalimat suara narator untuk edukasi problem...\"\n";
+      text += "Prompt Video: Close-up angled shot showing delicate velvet texture, dynamic camera slide, warm cinematic lighting\n\n";
       text += "[SCENE 3: Solusi]\n";
-      text += "Visual: Gunakan puzzling3 (deskripsi aksi visual)\n";
-      text += "Audio: \"Kalimat suara narator\"\n\n";
-      text += "[SCENE 4: Demo / Before-After]\n";
-      text += "Visual: Gunakan puzzling4 (deskripsi aksi visual)\n";
-      text += "Audio: \"Kalimat suara narator\"\n\n";
+      text += "Puzzling: Gunakan puzzling3\n";
+      text += "Audio: \"Kalimat suara narator saat demo busa/produk...\"\n";
+      text += "Prompt Video: Low-angle dynamic zoom of thick active white foam expanding instantly on dark fabric, hyper-detailed\n\n";
+      text += "[SCENE 4: Demo / Klimaks]\n";
+      text += "Puzzling: Gunakan puzzling4\n";
+      text += "Audio: \"Kalimat suara narator hasil before-after...\"\n";
+      text += "Prompt Video: Smooth gliding tracking shot of microfiber cloth wiping clean revealing spotless surface, high contrast\n\n";
       text += "[SCENE 5: Penawaran & CTA]\n";
-      text += "Visual: Gunakan puzzling5 (deskripsi aksi visual)\n";
-      text += "Audio: \"Kalimat suara narator\"\n";
+      text += "Puzzling: Gunakan puzzling5\n";
+      text += "Audio: \"Kalimat ajakan klik keranjang kuning promo hari ini...\"\n";
+      text += "Prompt Video: Clean commercial product hero shot on sleek pedestal, studio lighting, glowing discount badge overlay\n";
 
       return text;
     }
 
     function copyScriptFormat() {
-      if (!currentAnalysisData) {
-        alert("Lakukan analisis video referensi terlebih dahulu di Tab 1.");
+      const text = generateIntegratedAIBrief();
+      if (!text) {
+        alert("Belum ada data referensi atau kepingan puzzle.");
         return;
       }
-      const text = generateIntegratedAIBrief();
       navigator.clipboard.writeText(text);
       openBriefModal(text);
     }
@@ -1699,19 +1764,84 @@
 
       const parsed = parseAIScriptText(rawText);
       if (parsed.length === 0) {
-        alert("Tidak dapat mendeteksi scene secara otomatis. Pastikan ada kata 'Hook' atau 'Scene 1', 'Visual:', dan 'Audio:'.");
+        alert("Tidak dapat mendeteksi scene secara otomatis. Pastikan format mengandung Scene/Hook, Puzzling/Visual, Audio, dan Prompt Video.");
         return;
       }
 
-      conceptScenes = parsed;
+      // 1. Update conceptScenes in Step 1
+      conceptScenes = parsed.map(p => ({
+        id: p.id,
+        scene_name: p.scene_name,
+        visual_intent: p.visual_intent,
+        voice_script: p.voice_script,
+        omni_camera_prompt: p.omni_camera_prompt || ''
+      }));
       renderConceptScenes();
+
+      // 2. Build matchedPlan directly from AI suggestions & puzzling inventory
+      matchedPlan = parsed.map((p, idx) => {
+        let puzzle = null;
+        if (availablePuzzles && availablePuzzles.length > 0) {
+          if (typeof p.puzzling_idx === 'number' && p.puzzling_idx >= 0 && p.puzzling_idx < availablePuzzles.length) {
+            puzzle = availablePuzzles[p.puzzling_idx];
+          } else {
+            puzzle = availablePuzzles[idx % availablePuzzles.length];
+          }
+        }
+
+        const clipPath = puzzle ? (puzzle.clip_path || '') : '';
+        const fn = puzzle ? (puzzle.filename || '') : `puzzling_${idx + 1}.mp4`;
+        const thumbPath = puzzle ? (puzzle.thumb_path || '') : '';
+
+        return {
+          scene_name: p.scene_name,
+          voice_script: p.voice_script,
+          visual_intent: p.visual_intent,
+          selected_puzzle_filename: fn,
+          clip_path: clipPath,
+          clip_url: clipPath ? `/api/media?path=${encodeURIComponent(clipPath)}` : '',
+          thumb_url: thumbPath ? `/api/media?path=${encodeURIComponent(thumbPath)}` : (clipPath ? `/api/media?path=${encodeURIComponent(clipPath)}` : ''),
+          match_reason: puzzle ? `Dipilih oleh ChatGPT/Claude (${p.puzzling_ref || 'puzzling' + (idx + 1)})` : 'Saran AI',
+          omni_camera_prompt: p.omni_camera_prompt || (puzzle ? (puzzle.omni_prompt || '') : ''),
+          is_omni: false,
+          omni_clip_path: '',
+          omni_clip_url: ''
+        };
+      });
+
+      // 3. Render cards and reveal Studio Step 2
+      document.getElementById('matchedSceneCountBadge').innerText = `${matchedPlan.length} Scene Siap`;
+      renderMatchedCards();
+
+      const planContainer = document.getElementById('matchedPlanContainer');
+      planContainer.classList.remove('hidden');
+
       closePasteAIModal();
       document.getElementById('pasteAIModalText').value = '';
-      alert(`Berhasil memasukkan ${parsed.length} scene ke Studio! Silakan periksa kembali atau langsung klik tombol '🧠 AI Auto-Match Puzzle'.`);
+
+      // Smooth scroll to matched cards
+      setTimeout(() => {
+        planContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+
+      alert(`Sukses! ${parsed.length} scene dari ChatGPT/Claude berhasil dimuat lengkap dengan Klip Puzzle & Prompt Edit Video kamera.`);
     }
 
     function parseAIScriptText(rawText) {
       if (!rawText || !rawText.trim()) return [];
+
+      // Helper to extract puzzling reference and clean text
+      function extractPuzzlingInfo(text) {
+        let ref = '';
+        let idx = -1;
+        if (!text) return { ref, idx };
+        const m = text.match(/(?:puzzling|puzzle|klip|clip)\s*#?\s*(\d+)/i);
+        if (m) {
+          ref = m[0].toLowerCase().replace(/\s+/g, '');
+          idx = parseInt(m[1], 10) - 1;
+        }
+        return { ref, idx };
+      }
 
       // 1. Try JSON if AI returned JSON block
       try {
@@ -1719,17 +1849,24 @@
         if (jsonMatch) {
           const arr = JSON.parse(jsonMatch[0]);
           if (Array.isArray(arr) && arr.length > 0) {
-            return arr.map((item, idx) => ({
-              id: Date.now() + idx + Math.random(),
-              scene_name: item.scene_name || item.scene || item.name || `Scene ${idx + 1}`,
-              visual_intent: item.visual_intent || item.visual || item.visual_action || item.aksi || '',
-              voice_script: item.voice_script || item.script || item.audio || item.voiceover || item.suara || ''
-            }));
+            return arr.map((item, i) => {
+              const vis = item.visual_intent || item.visual || item.puzzling || item.visual_action || item.aksi || '';
+              const pzInfo = extractPuzzlingInfo(vis + ' ' + (item.scene_name || ''));
+              return {
+                id: Date.now() + i + Math.random(),
+                scene_name: item.scene_name || item.scene || item.name || `Scene ${i + 1}`,
+                visual_intent: vis,
+                puzzling_ref: pzInfo.ref,
+                puzzling_idx: pzInfo.idx >= 0 ? pzInfo.idx : i,
+                voice_script: (item.voice_script || item.script || item.audio || item.voiceover || item.suara || '').replace(/^["'“”]+|["'“”]+$/g, '').trim(),
+                omni_camera_prompt: item.prompt_video || item.prompt_omni || item.omni_camera_prompt || item.omni_prompt || item.camera_prompt || item.prompt || ''
+              };
+            });
           }
         }
       } catch (e) {}
 
-      // 2. Check for Markdown Table format (| Scene | Visual | Audio |)
+      // 2. Check for Markdown Table format (| Scene | Visual / Puzzling | Audio | Prompt Video |)
       const allLines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       const tableLines = allLines.filter(l => l.includes('|'));
       if (tableLines.length >= 2) {
@@ -1741,11 +1878,16 @@
             if (firstCol.includes('scene') || firstCol.includes('---') || firstCol.includes('no.')) {
               continue; // Header row
             }
+            const vis = cols[1];
+            const pzInfo = extractPuzzlingInfo(vis + ' ' + cols[0]);
             tableScenes.push({
               id: Date.now() + tableScenes.length + Math.random(),
-              scene_name: cols[0],
-              visual_intent: cols[1],
-              voice_script: cols[2].replace(/^["'“”]+|["'“”]+$/g, '').trim()
+              scene_name: cols[0].replace(/^[\[\(\*#:\s-]+|[\]\)\*#:\s-]+$/g, '').trim(),
+              visual_intent: vis,
+              puzzling_ref: pzInfo.ref,
+              puzzling_idx: pzInfo.idx >= 0 ? pzInfo.idx : tableScenes.length,
+              voice_script: cols[2].replace(/^["'“”]+|["'“”]+$/g, '').trim(),
+              omni_camera_prompt: cols[3] ? cols[3].trim() : ''
             });
           }
         }
@@ -1754,22 +1896,30 @@
         }
       }
 
-      // 3. Check for Standard [SCENE X] / Scene X: blocks with Visual: and Audio:
+      // 3. Check for Standard [SCENE X] / Scene X: blocks with Puzzling/Visual, Audio, and Prompt Video
       const blockScenes = [];
       let current = null;
 
       for (let i = 0; i < allLines.length; i++) {
         const line = allLines[i];
 
-        // Header pattern (e.g. "[SCENE 1: Hook]", "Scene 1 (Hook)", "1. Hook", "Hook (0-3 detik)", ":hook:")
-        const isHeader = /^(?:\[|\*|#)*(?:scene\s*\d+|hook|ad\s*\d+|\d+\.\s*[a-zA-Z]+)(?:\]|\*|#|:|\s)*(.*)$/i.test(line) &&
+        // Check if line is a scene header
+        const isHeader = /^(?:\[|\*|#)*(?:scene\s*\d+|hook|problem|solusi|demo|cta|penawaran|klimaks|\d+\.\s*[a-zA-Z]+)(?:\]|\*|#|:|\s)*(.*)$/i.test(line) &&
                          !line.toLowerCase().startsWith('visual:') && 
+                         !line.toLowerCase().startsWith('puzzling:') &&
                          !line.toLowerCase().startsWith('audio:') &&
                          !line.toLowerCase().startsWith('suara:') &&
-                         !line.toLowerCase().startsWith('skrip:');
+                         !line.toLowerCase().startsWith('skrip:') &&
+                         !line.toLowerCase().startsWith('prompt:') &&
+                         !line.toLowerCase().startsWith('prompt video:') &&
+                         !line.toLowerCase().startsWith('prompt omni:') &&
+                         !line.toLowerCase().startsWith('prompt kamera:') &&
+                         !line.toLowerCase().startsWith('persona') &&
+                         !line.toLowerCase().startsWith('format:') &&
+                         !line.toLowerCase().startsWith('tone:');
 
         if (isHeader) {
-          if (current && (current.visual_intent || current.voice_script)) {
+          if (current && (current.visual_intent || current.voice_script || current.omni_camera_prompt)) {
             blockScenes.push(current);
           }
           const cleanTitle = line.replace(/^[\[\(\*#:\s-]+|[\]\)\*#:\s-]+$/g, '').trim();
@@ -1777,73 +1927,128 @@
             id: Date.now() + blockScenes.length + Math.random(),
             scene_name: cleanTitle || `Scene ${blockScenes.length + 1}`,
             visual_intent: '',
-            voice_script: ''
+            puzzling_ref: '',
+            puzzling_idx: -1,
+            voice_script: '',
+            omni_camera_prompt: ''
           };
           continue;
         }
 
         if (!current) {
-          // If we see Visual: or Audio: before any header
-          if (/^(?:visual|audio|suara|skrip|voiceover)\s*:/i.test(line)) {
+          if (/^(?:visual|puzzling|audio|suara|skrip|voiceover|prompt)\s*:/i.test(line)) {
             current = {
               id: Date.now() + Math.random(),
-              scene_name: 'Hook (0-3s)',
+              scene_name: `Scene ${blockScenes.length + 1}`,
               visual_intent: '',
-              voice_script: ''
+              puzzling_ref: '',
+              puzzling_idx: -1,
+              voice_script: '',
+              omni_camera_prompt: ''
             };
           }
         }
 
         if (current) {
-          const visMatch = line.match(/^(?:visual|aksi visual|aksi|visual intent|video|puzzling)\s*:\s*(.*)$/i);
+          // Visual / Puzzling line
+          const visMatch = line.match(/^(?:visual|puzzling|aksi visual|aksi|visual intent|video|klip)\s*:\s*(.*)$/i);
           if (visMatch) {
-            current.visual_intent = (current.visual_intent ? current.visual_intent + ' ' : '') + visMatch[1].trim();
+            const visVal = visMatch[1].trim();
+            current.visual_intent = (current.visual_intent ? current.visual_intent + ' ' : '') + visVal;
+            const pz = extractPuzzlingInfo(visVal);
+            if (pz.ref && !current.puzzling_ref) {
+              current.puzzling_ref = pz.ref;
+              current.puzzling_idx = pz.idx;
+            }
             continue;
           }
 
+          // Audio line
           const audMatch = line.match(/^(?:audio|suara|skrip suara|skrip|voiceover|voice|narasi|kata)\s*:\s*(.*)$/i);
           if (audMatch) {
             current.voice_script = (current.voice_script ? current.voice_script + ' ' : '') + audMatch[1].replace(/^["'“”]+|["'“”]+$/g, '').trim();
             continue;
           }
 
-          // Continuation text
-          if (current.voice_script && !current.visual_intent) {
-            current.voice_script += ' ' + line.replace(/^["'“”]+|["'“”]+$/g, '');
+          // Check if line contains quote for audio (e.g. Tantangan netizen Puzzling1 "Katanya...")
+          const quoteInLine = line.match(/["“](.*?)["”]/);
+          if (quoteInLine) {
+            current.voice_script = (current.voice_script ? current.voice_script + ' ' : '') + quoteInLine[1].trim();
+            const pre = line.substring(0, quoteInLine.index).trim();
+            if (pre) {
+              current.visual_intent = (current.visual_intent ? current.visual_intent + ' ' : '') + pre;
+            }
+            const pz = extractPuzzlingInfo(line);
+            if (pz.ref && !current.puzzling_ref) {
+              current.puzzling_ref = pz.ref;
+              current.puzzling_idx = pz.idx;
+            }
+            continue;
+          }
+
+          // Prompt Video line
+          const prmMatch = line.match(/^(?:prompt video|prompt omni|prompt edit|prompt kamera|camera prompt|omni prompt|prompt)\s*:\s*(.*)$/i);
+          if (prmMatch) {
+            current.omni_camera_prompt = (current.omni_camera_prompt ? current.omni_camera_prompt + ' ' : '') + prmMatch[1].trim();
+            continue;
+          }
+
+          // Continuation text or puzzling mention
+          const pzCheck = extractPuzzlingInfo(line);
+          if (pzCheck.ref && !current.puzzling_ref) {
+            current.puzzling_ref = pzCheck.ref;
+            current.puzzling_idx = pzCheck.idx;
+          }
+
+          if (current.omni_camera_prompt) {
+            current.omni_camera_prompt += ' ' + line.trim();
+          } else if (current.voice_script && !current.visual_intent) {
+            current.voice_script += ' ' + line.replace(/^["'“”]+|["'“”]+$/g, '').trim();
           } else if (current.visual_intent) {
-            current.visual_intent += ' ' + line;
+            current.visual_intent += ' ' + line.trim();
           }
         }
       }
 
-      if (current && (current.visual_intent || current.voice_script)) {
+      if (current && (current.visual_intent || current.voice_script || current.omni_camera_prompt)) {
         blockScenes.push(current);
       }
 
       if (blockScenes.length > 0) {
+        blockScenes.forEach((s, idx) => {
+          if (s.puzzling_idx < 0) {
+            const pz = extractPuzzlingInfo(s.visual_intent + ' ' + s.scene_name);
+            if (pz.ref) {
+              s.puzzling_ref = pz.ref;
+              s.puzzling_idx = pz.idx;
+            } else {
+              s.puzzling_idx = idx;
+            }
+          }
+        });
         return blockScenes;
       }
 
-      // 4. Fallback: Parse rows that contain quoted speech ("...") like tabular ChatGPT responses
+      // 4. Fallback: Parse rows that contain quoted speech ("...")
       const quotedRows = [];
-      for (const line of allLines) {
-        // Skip metadata lines
+      for (let i = 0; i < allLines.length; i++) {
+        const line = allLines[i];
         const lower = line.toLowerCase();
-        if (lower.startsWith('persona') || lower.startsWith('format:') || lower.startsWith('tone:') || lower.startsWith('skrip lengkap')) {
+        if (lower.startsWith('persona') || lower.startsWith('format:') || lower.startsWith('tone:') || lower.startsWith('skrip lengkap') || lower.startsWith('tabel')) {
           continue;
         }
 
-        // Search for quotes: "..." or “...”
         const qMatch = line.match(/["“](.*?)["”]/);
         if (qMatch) {
           const audioText = qMatch[1].trim();
           const prefix = line.substring(0, qMatch.index).trim();
+          const suffix = line.substring(qMatch.index + qMatch[0].length).trim();
           
           if (!prefix && lower.includes('audio') && lower.includes('visual')) {
-            continue; // Header
+            continue;
           }
 
-          // Split prefix by tabs or 2+ spaces
+          const pzInfo = extractPuzzlingInfo(line);
           const parts = prefix.split(/\t+|\s{2,}/).map(p => p.trim()).filter(p => p.length > 0);
           let scName = `Scene ${quotedRows.length + 1}`;
           let visual = '';
@@ -1853,16 +2058,34 @@
             visual = parts.slice(1).join(' ');
           } else if (parts.length === 1) {
             scName = parts[0];
-            visual = 'Gunakan puzzling terkait aksi ini';
+            visual = pzInfo.ref ? `Gunakan ${pzInfo.ref}` : 'Gunakan puzzling terkait aksi ini';
           } else {
-            visual = prefix || 'Gunakan puzzling terkait aksi ini';
+            visual = prefix || (pzInfo.ref ? `Gunakan ${pzInfo.ref}` : 'Gunakan puzzling terkait aksi ini');
+          }
+
+          let promptVal = '';
+          if (suffix) {
+            const pMatch = suffix.match(/(?:prompt video|prompt omni|prompt|camera)\s*:\s*(.*)/i);
+            if (pMatch) promptVal = pMatch[1].trim();
+            else if (suffix.toLowerCase().includes('prompt') || suffix.length > 10) promptVal = suffix;
+          }
+          if (!promptVal && i + 1 < allLines.length) {
+            const nextLine = allLines[i + 1];
+            const nextPMatch = nextLine.match(/^(?:prompt video|prompt omni|prompt edit|prompt kamera|camera prompt|prompt)\s*:\s*(.*)$/i);
+            if (nextPMatch) {
+              promptVal = nextPMatch[1].trim();
+              i++;
+            }
           }
 
           quotedRows.push({
             id: Date.now() + quotedRows.length + Math.random(),
             scene_name: scName.replace(/^[\[\(\*#:\s-]+|[\]\)\*#:\s-]+$/g, '').trim(),
             visual_intent: visual,
-            voice_script: audioText
+            puzzling_ref: pzInfo.ref,
+            puzzling_idx: pzInfo.idx >= 0 ? pzInfo.idx : quotedRows.length,
+            voice_script: audioText,
+            omni_camera_prompt: promptVal
           });
         }
       }
@@ -1884,8 +2107,8 @@
             <i class="fa-solid fa-paste"></i>
           </div>
           <div>
-            <h4 class="text-sm font-bold text-white">Tempel Hasil Skrip dari AI (ChatGPT / Claude / Gemini)</h4>
-            <p class="text-[11px] text-slate-400">Tempelkan seluruh teks jawaban dari ChatGPT/Claude, sistem akan otomatis memecahnya menjadi scene.</p>
+            <h4 class="text-sm font-bold text-white">Tempel Hasil Skrip & Prompt AI (ChatGPT / Claude / Gemini)</h4>
+            <p class="text-[11px] text-slate-400">Tempelkan seluruh teks jawaban dari ChatGPT/Claude, sistem akan otomatis memecahnya menjadi scene, menghubungkan klip puzzle, dan mengisi prompt kamera video.</p>
           </div>
         </div>
         <button onclick="closePasteAIModal()" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
@@ -1895,7 +2118,7 @@
         <textarea 
           id="pasteAIModalText" 
           rows="12" 
-          placeholder="Tempelkan hasil copy dari ChatGPT / Claude di sini...&#10;&#10;Contoh format yang didukung:&#10;Hook (0-3 detik)&#10;Visual: Gunakan puzzling1 aksi mencoret atap mobil&#10;Audio: Jangan buru-buru ganti plafon mobil kamu yang kusam!&#10;&#10;Scene 2 (Problem)&#10;Visual: Gunakan puzzling2&#10;Audio: Kalau disikat kasar, kain bludrunya bisa rontok..."
+          placeholder="Tempelkan jawaban lengkap dari ChatGPT / Claude di sini...&#10;&#10;Contoh format standar:&#10;[SCENE 1: Hook]&#10;Puzzling: Gunakan puzzling1&#10;Audio: &quot;Katanya spidol permanen di plafon mobil nggak bisa hilang? Oke Bang, gue buktiin sekarang.&quot;&#10;Prompt Video: Extreme macro close-up shot of hands holding black permanent marker drawing on fabric ceiling, dramatic lighting, 4k&#10;&#10;[SCENE 2: Problem]&#10;Puzzling: Gunakan puzzling2&#10;Audio: &quot;Kalau disikat kasar pakai sabun biasa, serat beludrunya bisa rontok...&quot;&#10;Prompt Video: Close-up angled shot showing delicate velvet texture, dynamic camera slide...&#10;&#10;(Format tabel dan teks biasa dengan tanda petik juga didukung)"
           class="w-full bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-purple-500 custom-scrollbar"
         ></textarea>
       </div>

@@ -9,6 +9,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
@@ -237,16 +238,17 @@ class AdStudioHandler(BaseHTTPRequestHandler):
 
         # 0.1 Upload Omni Video Clip (Binary stream)
         if path == "/api/upload-omni":
-            raw_filename = self.headers.get("X-Filename", "omni_clip.mp4")
-            scene_idx = self.headers.get("X-Scene-Idx", "01")
-            filename = urllib.parse.unquote(raw_filename)
-            filename = re.sub(r"[^\w\.-]", "_", filename)
-            if not filename.lower().endswith(".mp4"):
-                filename += ".mp4"
-            target_filename = f"omni_sc{scene_idx}_{int(time.time())}_{filename}"
-            target_path = os.path.join(OMNI_DIR, target_filename)
-
             try:
+                os.makedirs(OMNI_DIR, exist_ok=True)
+                raw_filename = self.headers.get("X-Filename", "omni_clip.mp4")
+                scene_idx = self.headers.get("X-Scene-Idx", "01")
+                filename = urllib.parse.unquote(raw_filename)
+                filename = re.sub(r"[^\w\.-]", "_", filename)
+                if not filename.lower().endswith(".mp4"):
+                    filename += ".mp4"
+                target_filename = f"omni_sc{scene_idx}_{int(time.time())}_{filename}"
+                target_path = os.path.join(OMNI_DIR, target_filename)
+
                 with open(target_path, "wb") as f:
                     remaining = length
                     chunk_size = 64 * 1024

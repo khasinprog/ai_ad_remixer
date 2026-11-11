@@ -276,10 +276,10 @@
               </button>
               <button 
                 onclick="copyScriptFormat()"
-                class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 transition"
+                class="w-full bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow"
               >
-                <i class="fa-regular fa-copy"></i>
-                <span>Salin Skrip untuk AI Lain</span>
+                <i class="fa-solid fa-robot"></i>
+                <span>Format Brief untuk AI (ChatGPT/Claude)</span>
               </button>
             </div>
           </div>
@@ -1553,20 +1553,123 @@
       alert("Transkrip suara berhasil disalin!");
     }
 
-    function copyScriptFormat() {
-      if (!currentAnalysisData) return;
+    function generateIntegratedAIBrief() {
+      if (!currentAnalysisData) return "";
       const scenes = currentAnalysisData.breakdown_scene || [];
-      let text = "FORMULA IKLAN KOMPETITOR UNTUK DIBUATKAN SKRIP BARU:\n\n";
-      text += `HOOK ASLI: "${currentAnalysisData.hook?.skrip_suara}"\n\n`;
-      text += "BREAKDOWN SCENE:\n";
-      scenes.forEach(s => {
-        text += `- Scene ${s.scene} (${s.detik_mulai}s-${s.detik_selesai}s) [${s.peran}]: Visual = "${s.aksi_visual}", Suara = "${s.skrip_suara}"\n`;
+      
+      let text = "=====================================================\n";
+      text += "BRIEF PEMBUATAN SKRIP IKLAN BARU (DIRECTED REMIX)\n";
+      text += "=====================================================\n\n";
+      
+      text += "video referensi\n";
+      text += "skrip:\n";
+      
+      if (currentAnalysisData.hook) {
+        text += ":hook:\n";
+        text += `visual: ${currentAnalysisData.hook.aksi_visual || '-'}\n`;
+        text += `audio: "${currentAnalysisData.hook.skrip_suara || '-'}"\n\n`;
+      }
+
+      scenes.forEach((s, idx) => {
+        text += `scene ${s.scene || (idx + 1)}\n`;
+        text += `visual: ${s.aksi_visual || '-'}\n`;
+        text += `audio: "${s.skrip_suara || '-'}"\n\n`;
       });
-      text += "\nTolong buatkan skrip iklan baru yang mereferensikan aksi visual tersebut.";
+
+      text += "data visual yang bisa kamu ambil untuk buat video (puzzling inventory):\n";
+      if (!availablePuzzles || availablePuzzles.length === 0) {
+        text += "(Belum ada potongan puzzle. Silakan klik 'Potong Jadi Klip Puzzle' di Tab 1).\n";
+      } else {
+        availablePuzzles.forEach((p, idx) => {
+          let statusText = "bisa langsung pake";
+          if (p.ada_produk && p.ada_wajah) {
+            statusText = "produk harus diganti & orang harus diganti";
+          } else if (p.ada_produk) {
+            statusText = "produk harus diganti";
+          } else if (p.ada_wajah) {
+            statusText = "orang harus diganti";
+          } else if (p.kategori_visual === 'Universal Demo') {
+            statusText = "bisa langsung pake (Universal Demo)";
+          }
+          text += `puzzling${idx + 1}: ${p.aksi_visual || p.filename} (${statusText})\n`;
+        });
+      }
+
+      text += "\n--- INSTRUKSI UNTUK AI (ChatGPT / Claude / Gemini) ---\n";
+      text += "Tolong buatkan skrip iklan baru yang berdaya konversi tinggi (Winning Ads Direct Response) dengan alur:\n";
+      text += "1. Tiru ritme, hook psikologis, dan alur persuasi dari video referensi di atas.\n";
+      text += "2. Arahkan visual setiap scene HANYA dengan memilih potongan visual dari 'puzzling' yang tersedia di atas (sebutkan kode puzzling-nya, misal: 'Gunakan puzzling3').\n";
+      text += "3. Utamakan kepingan yang berstatus (bisa langsung pake), dan jika menggunakan kepingan yang (produk/orang harus diganti), catat bahwa bagian itu akan diswap dengan Gemini Omni.\n";
+
+      return text;
+    }
+
+    function copyScriptFormat() {
+      if (!currentAnalysisData) {
+        alert("Lakukan analisis video referensi terlebih dahulu di Tab 1.");
+        return;
+      }
+      const text = generateIntegratedAIBrief();
       navigator.clipboard.writeText(text);
-      alert("Format skrip berhasil disalin ke clipboard!");
+      openBriefModal(text);
+    }
+
+    function openBriefModal(text) {
+      document.getElementById('briefModalText').value = text;
+      document.getElementById('briefModal').classList.remove('hidden');
+    }
+
+    function closeBriefModal() {
+      document.getElementById('briefModal').classList.add('hidden');
+    }
+
+    function copyBriefFromModal() {
+      const textarea = document.getElementById('briefModalText');
+      textarea.select();
+      navigator.clipboard.writeText(textarea.value);
+      const status = document.getElementById('briefCopiedStatus');
+      status.innerText = "Tersalin ke Clipboard!";
+      setTimeout(() => {
+        status.innerHTML = `<i class="fa-solid fa-circle-check"></i> Sudah disalin otomatis ke Clipboard!`;
+      }, 2000);
     }
   </script>
+
+  <!-- Modal Brief AI (ChatGPT / Claude / Gemini) -->
+  <div id="briefModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass max-w-2xl w-full rounded-2xl p-5 relative border border-slate-700 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center border border-purple-500/30 text-base">
+            <i class="fa-solid fa-robot"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-white">Format Brief untuk AI (ChatGPT / Claude)</h4>
+            <p class="text-[11px] text-slate-400">Siap di-copy ke ChatGPT/Claude untuk merancang skrip baru sesuai stok puzzle.</p>
+          </div>
+        </div>
+        <button onclick="closeBriefModal()" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+
+      <div class="my-3 flex-1 overflow-y-auto">
+        <textarea id="briefModalText" rows="15" readonly class="w-full bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 font-mono leading-relaxed focus:outline-none select-all custom-scrollbar"></textarea>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <span class="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5" id="briefCopiedStatus">
+          <i class="fa-solid fa-circle-check"></i> Sudah disalin otomatis ke Clipboard!
+        </span>
+        <div class="flex items-center gap-2">
+          <button onclick="copyBriefFromModal()" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow">
+            <i class="fa-regular fa-copy"></i> Salin Ulang
+          </button>
+          <button onclick="closeBriefModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-4 py-2 rounded-xl text-xs transition">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
 

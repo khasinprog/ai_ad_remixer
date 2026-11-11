@@ -160,19 +160,39 @@ Keluarkan hasil analisis HANYA dalam format JSON valid di dalam blok ```json ...
 
     raw_text = response.text.strip()
 
-    # Extract JSON from markdown fences if present
-    json_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", raw_text)
-    clean_json_str = json_match.group(1) if json_match else raw_text
+    def _robust_parse(text: str) -> dict:
+        """Parse JSON with multiple fallback strategies to handle Gemini quirks."""
+        # 1. Extract from markdown fences
+        json_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
+        clean = json_match.group(1).strip() if json_match else text.strip()
 
-    try:
-        data = json.loads(clean_json_str)
-    except Exception as e:
-        start = raw_text.find("{")
-        end = raw_text.rfind("}")
+        # 2. Direct parse
+        try:
+            return json.loads(clean)
+        except Exception:
+            pass
+
+        # 3. Remove trailing commas before ] or } (common Gemini mistake)
+        clean2 = re.sub(r",\s*([}\]])", r"\1", clean)
+        try:
+            return json.loads(clean2)
+        except Exception:
+            pass
+
+        # 4. Extract from first { to last }
+        start = text.find("{")
+        end = text.rfind("}")
         if start != -1 and end != -1:
-            data = json.loads(raw_text[start : end + 1])
-        else:
-            raise ValueError(f"Gagal mem-parsing JSON dari Gemini: {e}")
+            segment = text[start:end + 1]
+            # Remove trailing commas again on this segment
+            segment = re.sub(r",\s*([}\]])", r"\1", segment)
+            try:
+                return json.loads(segment)
+            except Exception as e2:
+                raise ValueError(f"Gagal mem-parsing JSON dari Gemini: {e2}\n\nRaw Gemini output (100 chars): {text[:100]}")
+        raise ValueError(f"Tidak ada JSON object ditemukan dalam output Gemini. Output (200 chars): {text[:200]}")
+
+    data = _robust_parse(raw_text)
 
     # Inject metadata into result
     data["product_relation"] = "different" if is_diff else "same"

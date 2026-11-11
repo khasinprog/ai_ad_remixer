@@ -1,6 +1,7 @@
 """
 Puzzle Slicer module.
 Splits source video into puzzle clips according to scene timestamps using FFmpeg.
+Guarantees a minimum clip duration of 3.0 seconds for Gemini Omni / AI Video Gen compatibility.
 """
 
 import os
@@ -8,9 +9,27 @@ import re
 import subprocess
 from typing import Any, Dict, List
 
+MIN_PUZZLE_DURATION = 3.0  # Gemini Omni requires min 3.0s video
+
+
+def get_video_duration(video_path: str) -> float:
+    """Get exact duration of video in seconds using ffprobe."""
+    try:
+        cmd = [
+            "ffprobe", "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            video_path
+        ]
+        res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return float(res.stdout.strip())
+    except Exception:
+        return 60.0
+
 
 def slice_video_to_puzzles(video_path: str, scenes: List[Dict[str, Any]], output_dir: str) -> List[Dict[str, Any]]:
     """Cuts source video into individual puzzle clips based on start_second and end_second.
+    Enforces minimum 3.0s duration per clip so clips can be edited in Gemini Omni.
     
     Args:
         video_path: Source MP4 video file.
@@ -24,6 +43,7 @@ def slice_video_to_puzzles(video_path: str, scenes: List[Dict[str, Any]], output
         raise FileNotFoundError(f"Video file tidak ditemukan: {video_path}")
 
     os.makedirs(output_dir, exist_ok=True)
+    video_duration = get_video_duration(video_path)
     results = []
 
     base_name = os.path.splitext(os.path.basename(video_path))[0]
@@ -31,9 +51,22 @@ def slice_video_to_puzzles(video_path: str, scenes: List[Dict[str, Any]], output
 
     for item in scenes:
         scene_idx = item.get("scene", 1)
-        start_sec = float(item.get("detik_mulai", 0))
-        end_sec = float(item.get("detik_selesai", start_sec + 3))
+        raw_start = float(item.get("detik_mulai", 0))
+        raw_end = float(item.get("detik_selesai", raw_start + MIN_PUZZLE_DURATION))
+
+        start_sec = max(0.0, raw_start)
+        end_sec = max(start_sec + 0.5, raw_end)
+
+        # Enforce minimum 3.0 seconds duration for Gemini Omni compatibility
+        if (end_sec - start_sec) < MIN_PUZZLE_DURATION:
+            end_sec = start_sec + MIN_PUZZLE_DURATION
+            if end_sec > video_duration:
+                end_sec = video_duration
+                start_sec = max(0.0, end_sec - MIN_PUZZLE_DURATION)
+
         duration = max(0.5, end_sec - start_sec)
+        if video_duration >= MIN_PUZZLE_DURATION and duration < MIN_PUZZLE_DURATION:
+            duration = MIN_PUZZLE_DURATION
 
         clip_name = f"puzzle_{clean_prefix}_sc{scene_idx:02d}_{int(start_sec)}s-{int(end_sec)}s.mp4"
         clip_path = os.path.join(output_dir, clip_name)
@@ -43,8 +76,8 @@ def slice_video_to_puzzles(video_path: str, scenes: List[Dict[str, Any]], output
         # Cut video clip using ultrafast FFmpeg
         cmd_cut = [
             "ffmpeg", "-y",
-            "-ss", str(start_sec),
-            "-to", str(end_sec),
+            "-ss", str(round(start_sec, 2)),
+            "-to", str(round(end_sec, 2)),
             "-i", video_path,
             "-c:v", "libx264", "-preset", "ultrafast",
             "-c:a", "aac",
@@ -55,7 +88,7 @@ def slice_video_to_puzzles(video_path: str, scenes: List[Dict[str, Any]], output
         # Generate thumbnail frame
         cmd_thumb = [
             "ffmpeg", "-y",
-            "-ss", str(start_sec + 0.1),
+            "-ss", str(round(start_sec + 0.1, 2)),
             "-i", video_path,
             "-vframes", "1",
             "-q:v", "2",
@@ -69,8 +102,8 @@ def slice_video_to_puzzles(video_path: str, scenes: List[Dict[str, Any]], output
             "filename": clip_name,
             "clip_path": clip_path,
             "thumb_path": thumb_path if os.path.exists(thumb_path) else None,
-            "start_second": start_sec,
-            "end_second": end_sec,
+            "start_second": round(start_sec, 2),
+            "end_second": round(end_sec, 2),
             "duration": round(duration, 2),
             "peran": item.get("peran", ""),
             "aksi_visual": item.get("aksi_visual", ""),

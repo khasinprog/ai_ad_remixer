@@ -334,27 +334,35 @@ class AdStudioHandler(BaseHTTPRequestHandler):
             try:
                 results = slice_video_to_puzzles(video_path, scenes, PUZZLES_DIR)
 
-                # Merge with existing puzzles so the library accumulates clips from multiple TikTok videos
+                # Replace mode: update library by replacing previous puzzles of this video
                 existing_puzzles = []
                 if os.path.exists(PUZZLES_META_FILE):
                     try:
-                        with open(PUZZLES_META_FILE, "r") as f:
+                        with open(PUZZLES_META_FILE, "r", encoding="utf-8") as f:
                             existing_puzzles = json.load(f)
                     except Exception:
                         existing_puzzles = []
 
-                existing_files = {p.get("filename") for p in existing_puzzles}
-                for r in results:
-                    if r.get("filename") not in existing_files:
-                        existing_puzzles.append(r)
+                base_name = os.path.splitext(os.path.basename(video_path))[0]
+                new_existing = []
+                for p in existing_puzzles:
+                    if p.get("source_video") == base_name:
+                        old_clip = p.get("clip_path")
+                        old_thumb = p.get("thumb_path")
+                        if old_clip and os.path.exists(old_clip):
+                            try: os.remove(old_clip)
+                            except Exception: pass
+                        if old_thumb and os.path.exists(old_thumb):
+                            try: os.remove(old_thumb)
+                            except Exception: pass
                     else:
-                        for idx, ep in enumerate(existing_puzzles):
-                            if ep.get("filename") == r.get("filename"):
-                                existing_puzzles[idx] = r
-                                break
+                        new_existing.append(p)
 
-                with open(PUZZLES_META_FILE, "w") as f:
-                    json.dump(existing_puzzles, f, indent=2)
+                new_existing.extend(results)
+                existing_puzzles = new_existing
+
+                with open(PUZZLES_META_FILE, "w", encoding="utf-8") as f:
+                    json.dump(existing_puzzles, f, indent=2, ensure_ascii=False)
 
                 self.send_json(200, {
                     "success": True,
@@ -430,23 +438,36 @@ class AdStudioHandler(BaseHTTPRequestHandler):
                     scenes = analysis.get("breakdown_scene", [])
                     print(f"[Batch TikTok] Ditemukan {len(scenes)} scene. Memotong jadi klip puzzle...")
 
-                    # Slice video into puzzles
+                    # Slice video into puzzles (minimum 3.0s enforced)
                     cut_puzzles = slice_video_to_puzzles(target_video_path, scenes, PUZZLES_DIR)
-                    added_count = 0
-                    for r in cut_puzzles:
-                        if r.get("filename") not in existing_files:
-                            existing_puzzles.append(r)
-                            existing_files.add(r.get("filename"))
-                            new_puzzles_total += 1
-                            added_count += 1
+                    base_name = os.path.splitext(os.path.basename(target_video_path))[0]
+                    
+                    # Replace previous puzzles belonging to this video
+                    new_existing = []
+                    for p in existing_puzzles:
+                        if p.get("source_video") == base_name:
+                            old_clip = p.get("clip_path")
+                            old_thumb = p.get("thumb_path")
+                            if old_clip and os.path.exists(old_clip):
+                                try: os.remove(old_clip)
+                                except Exception: pass
+                            if old_thumb and os.path.exists(old_thumb):
+                                try: os.remove(old_thumb)
+                                except Exception: pass
+                        else:
+                            new_existing.append(p)
 
-                    print(f"[Batch TikTok] ✅ Berhasil memproses: {clean_title} (+{added_count} puzzle baru)")
+                    new_existing.extend(cut_puzzles)
+                    existing_puzzles = new_existing
+                    new_puzzles_total += len(cut_puzzles)
+
+                    print(f"[Batch TikTok] ✅ Berhasil memproses & replace puzzle: {clean_title} ({len(cut_puzzles)} klip puzzle >= 3 detik)")
                     results_summary.append({
                         "url": u,
                         "title": tt_data.get("title", clean_title),
                         "success": True,
                         "scenes_cut": len(cut_puzzles),
-                        "new_added": added_count
+                        "new_added": len(cut_puzzles)
                     })
                 except Exception as err:
                     print(f"[Batch TikTok ERROR] ❌ Gagal memproses {u}: {err}")
